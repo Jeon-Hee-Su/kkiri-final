@@ -1,0 +1,6 @@
+# Docker 컨테이너용 최소 Python 패키지
+# (로컬 Anaconda 환경의 requirements.txt 대신 이 파일을 사용하세요)
+oracledb==3.4.2
+pandas==2.2.2
+sqlalchemy==2.0.36
+ollama==0.6.1

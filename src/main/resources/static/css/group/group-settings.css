@@ -1,0 +1,27 @@
+/* Custom Transitions */
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+.body {
+	user-select: none;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 다크모드 대응 및 폰트 설정 */
+.font-display {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+}
+
+/* Material Symbols Fill 설정 */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.font-variation-fill {
+    font-variation-settings: 'FILL' 1;
+}

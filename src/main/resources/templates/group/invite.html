@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>   
+    
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <link rel="stylesheet" th:href="@{/css/group/invite.css}">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>   
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+    
+    <title>모임 초대장 보내기</title>
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-xl overflow-x-hidden">
+    
+    <header class="flex items-center px-4 py-4 sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md z-10">
+        <button onclick="history.back()" class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-primary/10 transition-colors">
+            <span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+        </button>
+        <h1 class="ml-2 text-lg font-bold leading-tight tracking-tight">모임 초대장 보내기</h1>
+    </header>
+
+    <main th:if="${group != null}" 
+          th:data-group-id="${group.groupId}" 
+          th:data-invite-code="${group.inviteCode}" 
+          class="flex-1 px-4 py-2 space-y-6">
+        
+        <div id="capture-area" class="@container">
+            <div class="flex flex-col items-stretch justify-start rounded-xl shadow-lg border border-slate-100 bg-white dark:bg-slate-900 overflow-hidden">
+                <div id="invitation-image" class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover" 
+                     style="background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600');"></div>
+                
+                <div class="flex w-full flex-col items-stretch justify-center gap-4 p-5">
+                    <div class="flex flex-col gap-1">
+                        <h3 id="display-group-name" class="text-slate-900 dark:text-slate-100 text-xl font-bold" 
+                            th:text="${group.groupName}">모임 이름</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">함께 회비를 관리하고 즐거운 추억을 쌓아보세요.</p>
+                    </div>
+                    
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between px-1">
+                            <span class="text-xs font-bold text-primary flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">sync</span>
+                                모임 초대 코드
+                            </span>
+                            <span id="timer-wrapper" class="text-xs font-bold text-primary transition-colors">남은 시간 <span id="timer">03:00</span></span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between bg-blue-50/50 dark:bg-primary/10 p-4 rounded-xl border border-blue-100 dark:border-primary/20">
+                            <div class="flex flex-col">
+                                <p class="text-primary text-[10px] font-bold mb-0.5">초대 링크</p>
+                                <p id="invite-link-text" class="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate"
+                                   th:text="${group.inviteCode}">CODE1234</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="resetTimer()" class="flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-100 active:scale-90 transition-transform">
+                                    <span class="material-symbols-outlined text-primary text-[18px]">refresh</span>
+                                </button>
+                                <button onclick="copyLink()" class="flex flex-col items-center justify-center gap-0.5 rounded-xl w-[52px] h-[52px] bg-primary text-white text-[12px] font-bold shadow-lg shadow-blue-200/50 transition-all active:scale-95">
+                                    <span class="material-symbols-outlined text-[20px]">content_copy</span>
+                                    <span class="leading-none">복사</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center gap-6 py-8">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm relative">
+                        <img id="qr-image" alt="QR Code" class="w-40 h-40 transition-all duration-500" 
+                             src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=loading"/>
+                        <div class="absolute -top-2 -right-2 bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                            <span class="material-symbols-outlined text-[14px]">qr_code_2</span>
+                        </div>
+                    </div>
+                    <p id="qr-status" class="text-xs font-medium text-slate-400">QR 코드를 스캔하여 바로 참여하세요</p>
+                </div>
+                
+                <div class="w-full">
+                    <button onclick="saveImage()" class="w-full flex items-center justify-center gap-2 rounded-xl h-14 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-base font-bold transition-all active:scale-[0.98] hover:bg-slate-100 dark:hover:bg-slate-750">
+                        <span class="material-symbols-outlined text-[22px]">download</span>
+                        <span>이미지 저장</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <main th:if="${group == null}" class="flex-1 flex flex-col items-center justify-center p-10 text-center">
+        <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">error</span>
+        <p class="font-bold text-slate-500">그룹 정보를 찾을 수 없습니다.</p>
+        <button onclick="history.back()" class="mt-4 text-primary font-bold">뒤로 가기</button>
+    </main>
+
+    <footer class="p-4 bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-slate-800">
+        <button th:onclick="|location.href='/group/detail/' + ${group != null ? group.groupId : 0}|" class="w-full flex items-center justify-center rounded-xl h-14 bg-primary text-white text-base font-bold transition-all active:scale-[0.98] shadow-lg shadow-blue-200/50">
+            완료
+        </button>
+    </footer>
+</div>
+
+<script th:src="@{/js/group/invite.js}"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+/* 기본 폰트 및 최소 높이 설정 */
+body { 
+    font-family: 'Noto Sans KR', sans-serif; 
+    min-height: 100dvh; 
+    display: block !important;
+	user-select: none;
+}
+
+html, body {
+    height: auto !important;
+    overflow-y: auto !important;
+}
+
+/* 커스텀 라디오 버튼 스타일 */
+.custom-radio:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+    background-color: #0054FF;
+    border-color: #0054FF;
+}
+
+/* 아이콘 굵기 조정 (Variable Fonts 전용) */
+.thin-icon {
+    font-variation-settings: 'wght' 200, 'opsz' 24;
+}
+
+/* 메인 및 푸터 레이아웃 확장 */
+main {
+    display: block !important;
+    width: 100%;
+}
+
+.footer-wrapper {
+    width: 100% !important;
+    max-width: none !important;
+}

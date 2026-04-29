@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>KKIRI | 모임 계좌 개설 완료</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/payment/create-passbook-finish.js}"></script>
+
+    <link rel="stylesheet" th:href="@{/css/payment/create-passbook-finish.css}">
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen">
+    <header th:replace="~{fragment/header :: commonHeader}"></header>
+
+    <div class="relative flex min-h-screen w-full flex-col">
+    <main class="flex-1 flex flex-col items-center py-8 px-4 sm:py-20">
+    <div class="w-full max-w-[550px] bg-white dark:bg-slate-900 p-7 sm:p-14 rounded-[2.5rem] sm:rounded-[3.5rem] shadow-2xl border-2 border-slate-100 dark:border-slate-800 transition-all">
+
+        <!-- 완료 헤더 -->
+        <div class="text-center mb-10 sm:mb-12">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="material-symbols-outlined text-green-500 font-bold" style="font-size:48px;">check_circle</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black mb-4 tracking-tight">모임 계좌 개설 완료!</h2>
+            <p class="text-slate-500 text-sm sm:text-base font-medium leading-relaxed">
+                모임 전용 계좌가 성공적으로 만들어졌어요.<br/>이제 멤버들의 회비를 투명하게 관리해 보세요.
+            </p>
+        </div>
+
+        <!-- 모임 및 계좌 정보 카드 -->
+        <div class="mb-10 p-7 sm:p-8 bg-blue-50/50 dark:bg-primary/5 rounded-[2.5rem] border border-primary/20 flex flex-col gap-6">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/30">
+                    <span class="material-symbols-outlined font-bold text-3xl">account_balance</span>
+                </div>
+                <div class="flex-1 min-w-0 text-left">
+                    <p class="text-[11px] font-bold text-primary uppercase tracking-widest mb-1">모임 명칭</p>
+                    <p id="display-group-name"
+                       th:text="${groupName} ?: '모임'"
+                       class="text-lg sm:text-xl font-black truncate text-slate-900">모임 이름</p>
+                </div>
+            </div>
+
+            <!-- 계좌번호 -->
+            <div class="pt-5 border-t border-slate-200/50 flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-500">은행</span>
+                    <span class="text-sm font-black text-slate-800"
+                          th:text="${bankName} ?: '-'">은행명</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-500">계좌번호</span>
+                    <div class="flex items-center gap-2">
+                        <span id="display-account-number"
+                              class="text-sm font-black text-slate-800"
+                              th:text="${account?.accountNumber} ?: '계좌 정보를 불러올 수 없습니다'">계좌번호</span>
+                        <button id="copy-btn"
+                                class="text-xs font-bold text-primary bg-white border border-primary/30 px-3 py-1 rounded-lg hover:bg-primary hover:text-white transition-all">
+                            복사
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-500">계좌 종류</span>
+                    <span class="text-sm font-black text-primary bg-white px-4 py-1.5 rounded-xl shadow-sm">모임통장 (자유입출금)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 모임 시작하기 버튼 -->
+        <button id="start-btn"
+                th:data-group-id="${groupId}"
+                class="w-full py-5 bg-primary text-white rounded-[1.8rem] font-black text-xl shadow-2xl shadow-primary/30 active:scale-[0.98] transition-all">
+            모임 시작하기
+        </button>
+
+    </div>
+    </main>
+    </div>
+
+    <div th:replace="~{fragment/footer :: mainFooter}"></div>
+</body>
+</html>

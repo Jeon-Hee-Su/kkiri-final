@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.kkiri.mapper.NotificationMapper">
+
+    <insert id="insertNotification" parameterType="com.kkiri.model.vo.NotificationVO">
+        INSERT INTO NOTIFICATIONS (
+            NOTI_ID,
+            USER_ID,
+            MESSAGE,
+            TARGET_TYPE,
+            TARGET_ID,
+            IS_READ,
+            CREATED_AT
+        ) 
+        VALUES (
+            SEQ_NOTI_ID.NEXTVAL,
+            #{noti.userId},
+            #{noti.message},
+            #{noti.targetType},
+            #{noti.targetId},
+            'N',
+            SYSDATE
+        )
+    </insert>
+
+    <select id="selectNotiList" resultType="com.kkiri.model.vo.NotificationVO">
+        SELECT * FROM (
+            SELECT 
+                NOTI_ID as notiId,
+                USER_ID as userId,
+                MESSAGE,
+                TARGET_TYPE as targetType,
+                TARGET_ID as targetId,
+                IS_READ as isRead,
+                TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI') as createdAt
+            FROM NOTIFICATIONS 
+            WHERE USER_ID = #{userId} 
+            ORDER BY CREATED_AT DESC
+        ) WHERE ROWNUM &lt;= 20
+    </select>
+
+	<select id="getFcmTokenByUserId" resultType="string">
+    	SELECT FCM_TOKEN
+    	FROM FCM_TOKENS 
+    	WHERE USER_ID = #{userId}
+	</select>
+	
+	<select id="unreadNoti" resultType="int">
+		SELECT CASE WHEN EXISTS (
+			SELECT 1
+			FROM NOTIFICATIONS
+			WHERE USER_ID = #{userId}
+			  AND IS_READ = 'N'
+		) THEN 1 ELSE 0 END AS hasUnread
+		FROM DUAL
+	</select>
+
+    <update id="updateReadStatus">
+        UPDATE NOTIFICATIONS 
+        SET IS_READ = 'Y' 
+        WHERE NOTI_ID = #{notiId}
+    </update>
+
+    <update id="updateAllReadStatus">
+        UPDATE NOTIFICATIONS 
+        SET IS_READ = 'Y' 
+        WHERE USER_ID = #{userId} AND IS_READ = 'N'
+    </update>
+
+</mapper>

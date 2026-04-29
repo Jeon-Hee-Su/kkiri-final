@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>내 계좌 연결하기 - 끼리끼리</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+</head>
+<body class="bg-slate-50 font-display text-slate-900 antialiased">
+
+    <input type="hidden" id="groupId" th:value="${groupId}">
+
+    <div class="max-w-md mx-auto min-h-screen bg-white shadow-xl flex flex-col">
+
+        <header class="p-4 flex items-center border-b sticky top-0 bg-white z-10">
+            <button onclick="history.back()" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <span class="material-symbols-outlined text-slate-700">arrow_back</span>
+            </button>
+            <h1 class="ml-2 text-lg font-bold text-slate-900">내 계좌 연결</h1>
+        </header>
+
+        <main class="flex-1 p-6 space-y-6 pb-36">
+            <div class="text-center space-y-2 pt-2">
+                <div class="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-primary/20">
+                    <span class="material-symbols-outlined text-4xl">account_balance_wallet</span>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight pt-2">방장 계좌를 연결해주세요</h2>
+                <p class="text-slate-500 text-sm leading-relaxed">회비 자동이체를 위해<br><span class="text-primary font-semibold">본인 명의 계좌</span>를 선택하거나 새로 등록해 주세요.</p>
+            </div>
+
+            <section>
+                <button onclick="openAccountModal()"
+                        class="w-full flex items-center justify-between p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-primary transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined text-2xl">add_card</span>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-bold text-slate-900">새로운 계좌 연결</p>
+                            <p class="text-[11px] text-slate-500">은행 선택 후 계좌번호 자동 생성</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-300">chevron_right</span>
+                </button>
+            </section>
+
+            <section class="space-y-3">
+                <div class="flex justify-between items-center px-1">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">내 계좌 선택</h2>
+                    <span class="text-[11px] text-slate-400">1개 선택</span>
+                </div>
+                <div id="account-list-container">
+                    <div class="py-10 text-center text-slate-400 text-sm">
+                        <span class="material-symbols-outlined text-4xl mb-2 block text-slate-200">account_balance</span>
+                        계좌 정보를 불러오는 중...
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-5 bg-white border-t border-slate-100 z-20">
+            <button id="submitBtn" disabled onclick="submitHostAccount()"
+                    class="w-full py-4 bg-primary disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-2xl font-black shadow-xl shadow-primary/20 active:scale-95 transition-all text-base">
+                연결 완료 및 모임 시작
+            </button>
+            <p class="text-center text-[10px] text-slate-400 mt-3 font-medium">연결한 계좌에서 회비가 자동 납부됩니다.</p>
+        </footer>
+    </div>
+
+    <!-- 계좌 등록 모달 -->
+    <div id="accountModal" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] md:rounded-[2.5rem] p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-bold italic text-slate-900">은행 계좌 연결</h3>
+                <button onclick="closeAccountModal()" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full text-slate-500">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="addAccountForm" class="flex flex-col gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">은행 선택</label>
+                    <select id="bankCode" name="bankCode" required onchange="previewAccountNumber()"
+                            class="w-full h-14 rounded-2xl border-none bg-slate-100 px-5 font-bold focus:ring-2 focus:ring-primary outline-none appearance-none text-slate-900">
+                        <option value="" disabled selected>은행을 선택해 주세요</option>
+                        <option value="088">신한은행</option>
+                        <option value="004">국민은행</option>
+                        <option value="090">카카오뱅크</option>
+                        <option value="092">토스뱅크</option>
+                        <option value="020">우리은행</option>
+                        <option value="011">NH농협은행</option>
+                        <option value="003">IBK기업은행</option>
+                    </select>
+                </div>
+                <div id="account-preview-wrap" class="hidden flex flex-col gap-2">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">생성된 계좌번호</label>
+                    <div class="flex gap-2">
+                        <div id="accountNumberDisplay"
+                             class="flex-1 h-14 rounded-2xl bg-slate-100 px-5 font-bold flex items-center text-slate-900 font-mono">-</div>
+                        <button type="button" onclick="previewAccountNumber()"
+                                class="h-14 px-4 rounded-2xl bg-slate-200 text-slate-600 font-bold text-sm hover:bg-primary hover:text-white transition-colors">
+                            재생성
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-4 bg-indigo-50 rounded-2xl">
+                    <span class="material-symbols-outlined text-indigo-600 text-xl">verified_user</span>
+                    <p class="text-[11px] text-indigo-700 font-medium leading-normal">
+                        등록 시 테스트 지원금 <strong>1,000,000원</strong>이 자동 입금됩니다.
+                    </p>
+                </div>
+                <button type="submit"
+                        class="w-full bg-primary text-white py-4 mt-2 rounded-2xl font-black shadow-lg shadow-primary/30 active:scale-[0.98] transition-all">
+                    계좌 등록 후 연결
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 결제 비밀번호 설정 모달 -->
+    <div id="passwordSetupModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-[480px] rounded-[3.5rem] p-10 sm:p-14 text-center shadow-2xl border border-slate-100">
+            <h3 class="text-2xl sm:text-3xl font-black mb-3">결제 비밀번호 설정</h3>
+            <p id="pw-setup-status" class="text-slate-500 text-base font-bold mb-14">숫자 6자리를 입력해주세요.</p>
+            <div class="flex justify-center gap-6 sm:gap-8 mb-16">
+                <div class="pw-dot w-6 h-6 rounded-full border-2 border-slate-200"></div>
+                <div class="pw-dot w-6 h-6 rounded-full border-2 border-slate-200"></div>
+                <div class="pw-dot w-6 h-6 rounded-full border-2 border-slate-200"></div>
+                <div class="pw-dot w-6 h-6 rounded-full border-2 border-slate-200"></div>
+                <div class="pw-dot w-6 h-6 rounded-full border-2 border-slate-200"></div>
+                <div class="pw-dot w-6 h-6 rounded-full border-2 border-slate-200"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-5 sm:gap-6">
+                <button type="button" onclick="handlePwInput('1')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">1</button>
+                <button type="button" onclick="handlePwInput('2')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">2</button>
+                <button type="button" onclick="handlePwInput('3')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">3</button>
+                <button type="button" onclick="handlePwInput('4')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">4</button>
+                <button type="button" onclick="handlePwInput('5')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">5</button>
+                <button type="button" onclick="handlePwInput('6')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">6</button>
+                <button type="button" onclick="handlePwInput('7')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">7</button>
+                <button type="button" onclick="handlePwInput('8')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">8</button>
+                <button type="button" onclick="handlePwInput('9')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">9</button>
+                <div class="h-16"></div>
+                <button type="button" onclick="handlePwInput('0')" class="h-16 rounded-2xl bg-slate-100 text-slate-900 text-xl font-bold hover:bg-primary hover:text-white active:scale-95 transition-all">0</button>
+                <button type="button" onclick="handlePwDelete()" class="h-16 flex items-center justify-center text-slate-400 hover:text-red-400 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined font-black text-4xl">backspace</span>
+                </button>
+            </div>
+            <button type="button" onclick="closePasswordSetupModal()" class="mt-8 text-sm text-slate-400 hover:text-slate-600 transition-colors">취소</button>
+        </div>
+    </div>
+
+    <script th:src="@{/js/payment/host-link-account.js}"></script>
+</body>
+</html>

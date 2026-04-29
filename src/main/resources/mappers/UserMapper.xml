@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kkiri.mapper.UserMapper">
+	<resultMap id="userAccountResultMap" type="com.kkiri.model.vo.UserAccountVO">
+		<id property="accountId" column="accountId" />
+		<result property="userId" column="userId" />
+		<result property="bankCode" column="bankCode" />
+		<result property="bankName" column="bankName" />
+		<result property="accountNumber" column="accountNumber" />
+		<result property="balance" column="BALANCE" />
+		<result property="isPrimary" column="isPrimary" />
+		<result property="status" column="STATUS" />
+		<result property="customerUid" column="CUSTOMER_UID" />
+	</resultMap>
+
+	<resultMap id="userResultMap" type="com.kkiri.model.vo.UserVO">
+		<id property="userId" column="user_id" />
+		<result property="email" column="email" />
+		<result property="loginId" column="login_id" />
+		<result property="password" column="password" />
+		<result property="nickname" column="nickname" />
+		<result property="profileImage" column="profile_image" />
+		<result property="status" column="status" />
+		<result property="isVerified" column="is_verified" />
+		<result property="verifiedAt" column="verified_at" />
+		<result property="createdAt" column="created_at" />
+		<result property="deletedAt" column="deleted_at" />
+
+		<association property="userPrivacy"
+			javaType="com.kkiri.model.vo.UserPrivacyVO">
+			<result property="userId" column="user_id" />
+			<result property="ci" column="ci" />
+			<result property="name" column="name" />
+			<result property="phoneNumber" column="phone_number" />
+			<result property="birthDate" column="birth_date" />
+			<result property="updatedAt" column="updated_at" />
+		</association>
+
+		<collection property="socialAccounts" javaType="java.util.List"
+			ofType="com.kkiri.model.vo.SocialAccountVO">
+			<id property="socialId" column="social_id" />
+			<result property="userId" column="social_user_id" />
+			<result property="provider" column="provider" />
+			<result property="providerId" column="provider_id" />
+			<result property="createdAt" column="social_created_at" />
+		</collection>
+	</resultMap>
+
+	<resultMap id="profileDetailsMap" type="com.kkiri.model.vo.UserVO">
+		<id property="userId" column="user_id" />
+		<result property="nickname" column="nickname" />
+		<result property="email" column="email" />
+		<result property="name" column="name" />
+		<result property="phoneNumber" column="phone_number" />
+		<result property="birthDate" column="birth_date" />
+	</resultMap>
+
+	<insert id="insertUser" parameterType="com.kkiri.model.vo.UserVO">
+		<selectKey keyProperty="userId" resultType="int" order="BEFORE">
+			SELECT SEQ_USER_ID.NEXTVAL FROM DUAL
+		</selectKey> INSERT INTO
+		USERS ( USER_ID, LOGIN_ID, EMAIL, PASSWORD, NICKNAME, PROFILE_IMAGE,
+		STATUS, IS_VERIFIED, CREATED_AT ) VALUES ( #{userId}, #{loginId},
+		#{email}, #{password}, #{nickname}, #{profileImage}, 'ACTIVE',
+		#{isVerified} , CURRENT_TIMESTAMP ) </insert>
+
+	<insert id="insertUserPrivacy"
+		parameterType="com.kkiri.model.vo.UserPrivacyVO">
+		INSERT INTO USER_PRIVACY (
+		USER_ID, CI, NAME, PHONE_NUMBER, BIRTH_DATE, UPDATED_AT
+		) VALUES (
+		#{userId}, #{ci}, #{name}, #{phoneNumber}, #{birthDate},
+		CURRENT_TIMESTAMP
+		)
+	</insert>
+
+	<insert id="insertSocialAccount"
+		parameterType="com.kkiri.model.vo.SocialAccountVO">
+		INSERT INTO SOCIAL_ACCOUNTS (social_id, user_id, provider, provider_id)
+		VALUES (SEQ_SOCIAL_ID.NEXTVAL, #{userId}, #{provider}, #{providerId})
+	</insert>
+
+	<insert id="insertAccount" parameterType="com.kkiri.model.vo.UserAccountVO">
+		<selectKey keyProperty="accountId" resultType="int" order="BEFORE">
+		SELECT SEQ_ACCOUNT_ID.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO USER_ACCOUNTS (ACCOUNT_ID, USER_ID, BANK_CODE,
+		ACCOUNT_NUMBER, BALANCE, IS_PRIMARY, PAYMENT_PASSWORD) VALUES
+		(#{accountId}, #{userId}, #{bankCode}, #{accountNumber}, #{balance}, #{isPrimary}, #{paymentPassword}) 
+	</insert>
+
+	<select id="findByEmail" resultMap="userResultMap">
+		SELECT u.*, p.name, p.phone_number, p.birth_date
+		FROM USERS u
+		LEFT JOIN USER_PRIVACY p ON u.user_id = p.user_id
+		WHERE u.email = #{email}
+	</select>
+	
+	<select id="findByCi" resultMap="userResultMap">
+    SELECT u.*, p.ci, p.phone_number
+    FROM USERS u
+    JOIN USER_PRIVACY p ON u.user_id = p.user_id
+    WHERE p.ci = #{ci}
+</select>
+
+	<select id="findByPhone" resultMap="userResultMap">
+		SELECT u.*, p.name, p.phone_number, p.birth_date, s.social_id, s.user_id
+		as social_user_id, s.provider, s.provider_id
+		FROM USERS u
+		JOIN USER_PRIVACY p ON u.user_id = p.user_id
+		LEFT JOIN SOCIAL_ACCOUNTS s ON u.user_id = s.user_id
+		WHERE p.phone_number = #{phone}
+	</select>
+
+	<select id="findById" resultMap="userResultMap">
+		SELECT u.*, p.name, p.phone_number, p.birth_date, s.social_id, s.user_id
+		as social_user_id, s.provider, s.provider_id
+		FROM USERS u
+		LEFT JOIN USER_PRIVACY p ON u.user_id = p.user_id
+		LEFT JOIN SOCIAL_ACCOUNTS s ON u.user_id = s.user_id
+		WHERE u.user_id = #{userId}
+	</select>
+
+	<select id="findByLoginId" resultMap="userResultMap">
+		SELECT u.*, p.name, p.phone_number, p.birth_date, s.social_id, s.user_id
+		as social_user_id, s.provider, s.provider_id
+		FROM USERS u
+		LEFT JOIN USER_PRIVACY p ON u.user_id = p.user_id
+		LEFT JOIN SOCIAL_ACCOUNTS s ON u.user_id = s.user_id
+		WHERE u.login_id = #{loginId}
+	</select>
+
+	<select id="checkIdDuplicate" resultType="int">
+		SELECT COUNT(*) FROM USERS WHERE login_id = #{loginId}
+	</select>
+
+	<select id="getProfileByUserId" resultMap="profileDetailsMap">
+		SELECT u.user_id, u.email, u.nickname, p.name, p.phone_number,
+		p.birth_date
+		FROM USERS u
+		JOIN USER_PRIVACY p ON u.user_id = p.user_id
+		WHERE u.user_id = #{userId}
+	</select>
+
+	<select id="findSocialAccount"
+		resultType="com.kkiri.model.vo.SocialAccountVO">
+		SELECT * FROM SOCIAL_ACCOUNTS WHERE user_id = #{userId} AND provider =
+		#{provider}
+	</select>
+	<select id="findPrimaryAccountByUserId" resultMap="userAccountResultMap">
+		SELECT
+		UA.ACCOUNT_ID as accountId,
+		UA.USER_ID as userId,
+		UA.BANK_CODE as bankCode,
+		B.BANK_NAME as bankName,
+		UA.ACCOUNT_NUMBER as accountNumber,
+		UA.BALANCE,
+		UA.IS_PRIMARY as isPrimary,
+		UA.STATUS,
+		UA.CUSTOMER_UID
+		FROM USER_ACCOUNTS UA
+		LEFT JOIN BANKS B ON UA.BANK_CODE = B.BANK_CODE
+		WHERE UA.USER_ID = #{userId}
+		AND UA.IS_PRIMARY = 'Y'
+		AND UA.STATUS = 'ACTIVE'
+	</select>
+
+	<select id="findAccountListByUserId" parameterType="int"
+		resultMap="userAccountResultMap">
+		SELECT
+		UA.ACCOUNT_ID as accountId,
+		UA.USER_ID as userId,
+		UA.BANK_CODE as bankCode,
+		B.BANK_NAME as bankName,
+		UA.ACCOUNT_NUMBER as accountNumber,
+		UA.BALANCE,
+		UA.IS_PRIMARY as isPrimary,
+		UA.STATUS
+		FROM USER_ACCOUNTS UA
+		LEFT JOIN BANKS B ON UA.BANK_CODE = B.BANK_CODE
+		WHERE UA.USER_ID = #{userId}
+		AND UA.STATUS = 'ACTIVE'
+		ORDER BY UA.IS_PRIMARY DESC, UA.ACCOUNT_ID ASC
+	</select>
+
+	<!--   <select id="findPrimaryAccountByUserId"
+	resultType="com.kkiri.model.vo.UserAccountVO">
+    SELECT 
+        ACCOUNT_ID as accountId,
+        USER_ID as userId,
+        BANK_CODE as bankCode,
+        ACCOUNT_NUMBER as accountNumber,
+        BALANCE,
+        IS_PRIMARY as isPrimary,
+        STATUS
+    FROM USER_ACCOUNTS
+    WHERE USER_ID = #{userId}
+    AND IS_PRIMARY = 'Y'
+</select> -->
+	<update id="updateUserNickname">
+		UPDATE USERS
+		SET NICKNAME = #{nickname}
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updateUserPrivacy">
+		UPDATE USER_PRIVACY
+		SET NAME = #{name},
+		PHONE_NUMBER = #{phone},
+		BIRTH_DATE = #{birth},
+		UPDATED_AT = CURRENT_TIMESTAMP
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updatePW">
+		UPDATE USERS u
+		SET u.PASSWORD = #{encodePW}
+		WHERE u.USER_ID = (
+		SELECT p.USER_ID
+		FROM USER_PRIVACY p
+		WHERE p.NAME = #{name}
+		AND p.BIRTH_DATE = #{birth}
+		)
+	</update>
+
+	<update id="updateCustomerUid">
+		UPDATE USER_ACCOUNTS
+		SET CUSTOMER_UID = #{customerUid}
+		WHERE USER_ID = #{userId}
+		AND IS_PRIMARY = 'Y'
+	</update>
+
+
+	<!--    <select id="findAccountListByUserId" parameterType="int"
+	resultType="com.kkiri.model.vo.UserAccountVO">
+    SELECT 
+        ACCOUNT_ID as accountId, 
+        USER_ID as userId, 
+        BANK_CODE as bankCode, 
+        ACCOUNT_NUMBER as accountNumber, 
+        BALANCE, 
+        IS_PRIMARY as isPrimary, 
+        STATUS 
+    FROM USER_ACCOUNTS 
+    WHERE USER_ID = #{userId}
+</select> -->
+
+	<update id="deleteAccount" parameterType="int">
+		UPDATE USER_ACCOUNTS
+		SET STATUS = 'DELETE'
+		WHERE ACCOUNT_ID = #{accountId}
+	</update>
+
+	<update id="updateGroupName">
+		UPDATE GROUPS
+		SET GROUP_NAME = #{groupName}
+		WHERE GROUP_ID = #{groupId}
+	</update>
+	<!-- <select id="findById" resultType="UserVO">
+    SELECT * FROM USERS WHERE USER_ID = #{userId}
+</select> -->
+	<update id="updateBalance">
+		UPDATE USER_ACCOUNTS
+		SET BALANCE = BALANCE + #{amount}
+		WHERE USER_ID = #{userId} AND STATUS = 'ACTIVE'
+	</update>
+	<insert id="insertTransactionHistory">
+		INSERT INTO TRANSACTION_HISTORY (
+		TRANSACTION_ID, USER_ID, GROUP_ID, AMOUNT, DESCRIPTION, CREATED_AT
+		) VALUES (
+		seq_transaction.NEXTVAL, #{userId}, #{groupId}, #{amount}, '모임 종료 정산',
+		CURRENT_TIMESTAMP
+		)
+	</insert>
+
+	<update id="withdraw">
+		UPDATE USER_ACCOUNTS
+		SET BALANCE = BALANCE - #{amount}
+		WHERE ACCOUNT_NUMBER = #{accountNumber}
+		AND BALANCE >= #{amount} </update>
+
+	<update id="deposit">
+		UPDATE USER_ACCOUNTS
+		SET BALANCE = BALANCE + #{amount}
+		WHERE ACCOUNT_NUMBER = #{accountNumber}
+	</update>
+
+	<!-- 주계좌 설정 1단계: 해당 유저의 모든 계좌 IS_PRIMARY → 'N' -->
+	<update id="resetAllPrimary">
+		UPDATE USER_ACCOUNTS
+		SET IS_PRIMARY = 'N'
+		WHERE USER_ID = #{userId}
+		AND STATUS = 'ACTIVE'
+	</update>
+
+	<!-- 주계좌 설정 2단계: 선택 계좌만 IS_PRIMARY → 'Y' (userId로 본인 계좌 이중 검증) -->
+	<update id="setPrimaryAccount">
+		UPDATE USER_ACCOUNTS
+		SET IS_PRIMARY = 'Y'
+		WHERE ACCOUNT_ID = #{accountId}
+		AND USER_ID = #{userId}
+		AND STATUS = 'ACTIVE'
+	</update>
+	<!-- 중복 없는 계좌개설-->
+	<select id="existsAccountNumber" resultType="boolean">
+		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+		FROM USER_ACCOUNTS
+		WHERE ACCOUNT_NUMBER = #{accountNumber}
+	</select>
+
+	<!-- ★ 추가: 계좌번호 + userId로 accountId 조회 (본인 계좌 확인 포함) -->
+	<select id="findAccountIdByAccountNumberAndUserId" resultType="java.lang.Integer">
+		SELECT ACCOUNT_ID
+		FROM USER_ACCOUNTS
+		WHERE ACCOUNT_NUMBER = #{accountNumber}
+		  AND USER_ID = #{userId}
+		  AND STATUS = 'ACTIVE'
+	</select>
+
+</mapper>

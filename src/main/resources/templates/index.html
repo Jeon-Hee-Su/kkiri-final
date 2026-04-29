@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>우리끼리(kkiri) - 더 가까워지는 우리</title>
+    
+	<script th:src="@{/js/auth/auth-common.js}"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+    <script th:src="@{/js/fragment/side_head.js(v=20260329)}"></script>
+    <script th:src="@{/js/index.js}" defer></script>
+    
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased">
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+        <div th:replace="~{fragment/header :: commonHeader}"></div>
+
+        <div class="flex flex-1 pt-16">
+            <div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+            <main class="flex-1 p-6 lg:p-12 transition-all duration-300">
+                <div class="max-w-6xl mx-auto space-y-16">
+                    
+                    <section class="relative py-10">
+                        <div class="flex flex-col gap-8 max-w-3xl animate-fade-in">
+                            <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-bold w-fit">
+                                🚀 새로운 소통의 시작
+                            </div>
+                            <h1 class="text-5xl lg:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
+                                복잡한 모임 관리를 <br/>
+                                <span class="text-primary italic">우리끼리</span> 한 번에.
+                            </h1>
+                            <p class="text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl">
+                                그룹 생성부터 정산, 활동 기록까지. <br/>
+                                우리만의 소중한 커뮤니티를 더 쉽고 즐겁게 관리하세요.
+                            </p>
+                            <div class="flex flex-wrap gap-4 mt-4">
+                                <button id="btn-group-check" class="group flex items-center gap-2 px-8 py-4 bg-primary text-white text-lg font-bold rounded-2xl hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20">
+                                    <span class="material-symbols-outlined">groups</span>
+                                    그룹 확인하기
+                                </button>
+                                <button id="btn-group-create-start" class="flex items-center gap-2 px-8 py-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-lg font-bold rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-primary transition-all duration-300">
+                                    <span class="material-symbols-outlined text-primary">add_circle</span>
+                                    그룹 생성하기
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 group">
+                            <div class="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined !text-3xl font-bold">payments</span>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">투명한 정산</h4>
+                            <p class="text-slate-500 dark:text-slate-400 leading-relaxed">모임 비용 지출 내역을 모든 멤버와 실시간으로 공유하고 투명하게 관리합니다.</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 group">
+                            <div class="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined !text-3xl font-bold">auto_graph</span>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">활동 통계</h4>
+                            <p class="text-slate-500 dark:text-slate-400 leading-relaxed">우리 그룹의 월별 활동량과 지표를 한눈에 파악할 수 있는 대시보드를 제공합니다.</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 group">
+                            <div class="w-14 h-14 bg-green-500/10 text-green-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined !text-3xl font-bold">verified</span>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">보안성</h4>
+                            <p class="text-slate-500 dark:text-slate-400 leading-relaxed">철저한 본인인증과 보안 시스템으로 우리만의 소중한 정보를 안전하게 보호합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="group-list-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0 duration-300" id="modal-content">
+            <div class="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">참여 중인 그룹</h3>
+                    <p class="text-sm text-slate-500 mt-1">이동할 그룹을 선택해주세요.</p>
+                </div>
+                <button class="btn-close-modal w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="p-4 max-h-[450px] overflow-y-auto custom-scrollbar" id="modal-group-list">
+                <div class="py-12 text-center text-slate-400">
+                    <div class="animate-spin mb-4 inline-block">
+                        <span class="material-symbols-outlined !text-4xl text-primary">progress_activity</span>
+                    </div>
+                    <p>그룹 정보를 가져오고 있습니다...</p>
+                </div>
+            </div>
+
+            <div class="p-8 bg-slate-50 dark:bg-slate-800/50 flex gap-3">
+                <button class="btn-close-modal flex-1 py-4 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all">
+                    닫기
+                </button>
+                <button id="btn-go-create" class="flex-1 py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20">
+                    새 그룹 만들기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragment/footer :: mainFooter}"></div>
+</body>
+</html>

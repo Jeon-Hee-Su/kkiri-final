@@ -1,0 +1,15 @@
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+        .period-btn.active { @apply bg-primary text-white shadow-lg shadow-primary/20 font-bold; }
+        /* 날짜 입력창 기본 아이콘 제거 및 스타일 커스텀 */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            background: transparent;
+            bottom: 0;
+            color: transparent;
+            cursor: pointer;
+            height: auto;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
+        }

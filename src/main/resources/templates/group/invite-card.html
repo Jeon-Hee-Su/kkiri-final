@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+	<script th:src="@{/js/tailwind.js}"></script>
+	<script th:src="@{/js/group/invite-card.js}"></script>
+	
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>	
+	<link rel="stylesheet" th:href="@{/css/material.css}">
+    <link rel="stylesheet" th:href="@{/css/group/invite-card.css}">
+    <title>모임 초대장 수락하기</title>
+
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+</head>
+<body class="bg-white font-display text-slate-900 antialiased">
+<div class="relative flex min-h-screen w-full max-w-md mx-auto flex-col bg-white shadow-2xl overflow-x-hidden border-x border-slate-50">
+    
+    <header class="flex items-center bg-white px-4 py-3 sticky top-0 z-10 border-b border-slate-100">
+        <div onclick="history.back()" class="text-slate-900 flex size-10 items-center justify-start cursor-pointer hover:bg-slate-50 rounded-full transition-colors">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </div>
+        <h2 class="text-slate-900 text-lg font-bold flex-1 text-center pr-10">모임 초대장</h2>
+    </header>
+
+    <main class="flex-1 overflow-y-auto">
+        <div class="@container px-4 pt-4">
+            <div class="relative overflow-hidden rounded-xl h-48 bg-slate-200">
+                <div id="hero-bg" class="absolute inset-0 bg-cover bg-center transition-all duration-700" style='background-image: url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600");'></div>
+                <div class="absolute inset-0 hero-gradient"></div>
+                <div class="absolute top-4 left-4">
+                    <span class="bg-primary text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg">초대받았어요!</span>
+                </div>
+                <div class="absolute bottom-6 left-6 text-white">
+                    <p class="text-2xl font-bold leading-tight">새로운 모임에<br/>초대되었습니다</p>
+                </div>
+            </div>
+        </div>
+
+      <div class="p-4">
+    <div class="bg-slate-50 border border-slate-100 rounded-xl p-5 flex flex-col gap-4 shadow-sm">
+        <div class="flex flex-col gap-1">
+            <h3 id="display-group-name" class="text-slate-900 text-xl font-bold">우리의 즐거운 여행 모임</h3>
+            <p class="text-slate-500 text-sm leading-relaxed">모임통장으로 함께 회비를 관리하고 즐거운 추억을 쌓아보세요.</p>
+        </div>
+    </div>
+</div>
+
+        <div class="px-4 pb-12 space-y-6">
+            <div class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl">
+                <div class="flex items-center gap-4">
+                    <div class="size-12 rounded-full bg-blue-50 flex items-center justify-center text-primary border border-blue-100">
+                        <span class="material-symbols-outlined text-[28px] fill-1">account_circle</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <p class="text-slate-900 text-sm font-bold">호스트: <span id="display-host-name">불러오는 중...</span></p>
+                        <p class="text-slate-400 text-[11px] font-medium tracking-wider">모임 개설자</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50/50 rounded-2xl p-6 border border-dashed border-slate-200 flex flex-col items-center gap-2">
+                <div class="flex items-center gap-2 text-primary">
+                    <span class="material-symbols-outlined text-[20px]">groups</span>
+                    <span id="member-count-text" class="text-lg font-bold tracking-tight text-slate-900">0명 참여 중</span>
+                </div>
+                <p class="text-slate-400 text-xs">현재 모임통장에 참여 중인 멤버 수입니다</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="p-4 pb-8 flex flex-col gap-3 bg-white border-t border-slate-50">
+        <button onclick="goToLinkAccount()" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-blue-100">
+            모임 참여하기
+        </button>
+        <button onclick="history.back()" class="w-full text-slate-400 font-medium py-2 text-sm hover:text-slate-600">
+            나중에 참여하기
+        </button>
+    </footer>
+</div>
+  
+</body>
+</html>

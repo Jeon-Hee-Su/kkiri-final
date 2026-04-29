@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    <title>KKIRI | AI 소비분석</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <link rel="stylesheet" th:href="@{/css/analysis/analysis.css}">
+    <script th:src="@{/js/tailwind.js}"></script>
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+	<script th:src="@{/js/auth/auth-common.js}"></script>
+	<script th:src="@{/js/auth/api-client.js}"></script>
+    <script th:src="@{/js/analysis/analysis.js}"></script>
+	
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen pb-20 font-display">
+
+    <div th:replace="~{fragment/header :: commonHeader}"></div>
+
+    <div class="flex max-w-[1440px] mx-auto relative pt-16 md:pt-20">
+        
+        <div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+        <div class="flex-1 min-w-0">
+            <div class="sticky top-16 md:top-20 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+                <div class="max-w-2xl mx-auto flex items-center justify-between px-5 py-4">
+                    <div class="flex items-center">
+						  <button onclick="history.back()" 
+						        class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 rounded-full shadow-sm text-slate-500 hover:text-primary transition-all active:scale-95 flex-shrink-0">
+						    <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+						</button>
+                        <h2 class="ml-2 text-lg font-bold tracking-tight">AI 소비분석</h2>
+                    </div>
+                    <!-- 그룹 선택 드롭다운 -->
+                    <select id="group-selector"
+                        onchange="onGroupChange(this.value)"
+                        class="h-9 rounded-xl border-none bg-slate-100 dark:bg-slate-800 px-3 text-sm font-bold focus:ring-2 focus:ring-primary max-w-[160px] truncate">
+                        <option value="">그룹 불러오는 중...</option>
+                    </select>
+                </div>
+            </div>
+
+            <main id="analysis-content" class="hidden max-w-3xl mx-auto p-5 md:p-8 flex flex-col gap-8">
+
+				<section id="recent-analysis-section" class="bg-white dark:bg-slate-900 border-2 border-primary/20 rounded-[2rem] p-6 shadow-sm relative overflow-hidden">
+				    <div class="flex flex-col sm:flex-row gap-6 items-center">
+				        
+				        <div class="relative w-32 h-24 flex flex-col justify-center items-center shrink-0">
+				            <canvas id="recentGaugeChart"></canvas>
+				            <div class="absolute inset-0 flex flex-col items-center justify-end pb-2">
+				                <span id="recent-relative-percent" class="text-sm font-black text-primary">0%</span>
+				                <span class="text-[8px] text-slate-400 uppercase font-bold tracking-tighter">vs Group Avg</span>
+				            </div>
+				        </div>
+
+				        <div class="flex-1 flex flex-col gap-2">
+				            <div class="flex items-center gap-2">
+				                <span class="relative flex h-2 w-2">
+				                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+				                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+				                </span>
+				                <span class="text-[10px] font-black text-primary uppercase tracking-widest">최근 영수증 분석</span>
+				            </div>
+				            <h4 id="recent-headline" class="text-lg font-bold text-slate-900 dark:text-white leading-tight">최근 영수증 분석 중...</h4>
+				            <p id="recent-commentary" class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">방금 등록된 지출에 대한 AI의 실시간 의견을 가져오고 있습니다.</p>
+				        </div>
+				    </div>
+				</section>
+                <section class="ai-glow bg-gradient-to-br from-primary to-blue-700 rounded-[2.5rem] p-7 text-white shadow-xl shadow-primary/20 relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col gap-5">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-xl">psychology</span>
+                            <span class="text-[11px] font-black uppercase tracking-widest opacity-80">그룹 누적 인사이트</span>
+                        </div>
+                        <h3 id="ai-headline" class="text-xl font-black leading-tight">우리 모임 소비 패턴 분석</h3>
+                        <p id="ai-commentary" class="text-sm opacity-70 leading-relaxed font-medium">잠시만 기다려주시면 AI가 분석을 시작합니다.</p>
+                        
+                        <div class="flex gap-2 mt-2">
+                            <span class="px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold">#AI_REPORT</span>
+                            <span class="px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold">#소비패턴</span>
+                        </div>
+                    </div>
+                    <div class="absolute -right-5 -bottom-5 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                </section>
+
+                <section class="flex flex-col gap-4">
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] px-1">지출 비중 시각화</h3>
+                    <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-sm flex justify-center items-center relative border border-slate-100 dark:border-slate-800">
+                        <div class="w-48 h-48">
+                            <canvas id="expenseChart"></canvas>
+                        </div>
+                        <div class="absolute flex flex-col items-center">
+                            <span id="main-percent" class="text-2xl font-black text-primary">0%</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase">Main Category</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="flex flex-col gap-4">
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] px-1">카테고리별 지출 상세</h3>
+                    <div id="category-list" class="flex flex-col gap-6 px-1"></div>
+                </section>
+
+                <section id="anomaly-section" class="flex flex-col gap-4">
+                    <h3 class="text-[11px] font-black text-rose-500 uppercase tracking-[0.15em] px-1">AI 이상 지출 감지</h3>
+                    <div id="anomaly-list"></div>
+                </section>
+
+            </main>
+
+            <div id="loading-skeleton" class="max-w-3xl mx-auto p-5 flex flex-col gap-8">
+                <div class="skeleton h-48 rounded-[2.5rem] w-full animate-pulse bg-slate-200 dark:bg-slate-800"></div>
+                <div class="flex flex-col gap-4">
+                    <div class="skeleton h-4 w-20 rounded bg-slate-200 dark:bg-slate-800"></div>
+                    <div class="skeleton h-64 rounded-[2rem] w-full animate-pulse bg-slate-200 dark:bg-slate-800"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragment/footer :: mainFooter}"></div>
+
+    <script>
+        window.addEventListener('load', () => {
+            if (typeof loadMyGroupsForAnalysis === 'function') {
+                loadMyGroupsForAnalysis();
+            }
+        });
+    </script>
+</body>
+</html>

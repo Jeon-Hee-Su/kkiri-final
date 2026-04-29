@@ -1,0 +1,163 @@
+
+/* 1. 변수 정의 및 기본 설정 */
+:root {
+    --primary: #135bec;
+    --primary-soft: rgba(19, 91, 236, 0.1);
+    --background-light: #f6f6f8;
+    --background-dark: #101622;
+    --slate-200: #e2e8f0;
+    --slate-800: #1e293b;
+    --slate-400: #94a3b8;
+}
+
+/* 2. 전역 바디 스타일 */
+body {
+    background-color: var(--background-light);
+    color: #0f172a;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    transition: background-color 0.3s ease;
+	user-select: none;
+}
+
+/* 다크모드 대응 */
+.dark body, body.dark {
+    background-color: var(--background-dark);
+    color: #f1f5f9;
+}
+
+/* 3. 공통 컴포넌트 클래스 */
+
+/* [수정] 카드 패널 스타일: index와 account 공통 사용 */
+.card-panel {
+    background-color: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.dark .card-panel {
+    background-color: #0f172a;
+    border-color: var(--slate-800);
+}
+
+/* [추가] 피처 카드 전용 (hover 효과 포함) */
+.feature-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+/* 메인 액션 버튼 */
+.btn-primary {
+    display: inline-flex; /* flex에서 inline-flex로 수정하여 버튼 크기 최적화 */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.5rem;
+    background-color: var(--primary);
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(19, 91, 236, 0.2);
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+    box-shadow: 0 10px 15px -3px rgba(19, 91, 236, 0.3);
+}
+
+.btn-primary:active {
+    transform: scale(0.96);
+}
+
+/* 정보 레이블 및 값 (회원정보 페이지용) */
+.info-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block; /* 줄바꿈 보장 */
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    color: #0f172a;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.dark .info-value {
+    color: #e2e8f0;
+}
+/* [공통] 아이콘 폰트 및 찌그러짐 방지 */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0 !important;
+    vertical-align: middle;
+}
+
+/* 모바일 대응 css */
+@media (max-width: 768px) {
+    /* 바디에서 발생하는 미세한 유격 제거 (횡스크롤 방지) */
+    html, body {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* 헤더 컨테이너: 너비 계산 방식 고정 */
+    header > div, [th\:replace*="header"] > div {
+        padding: 0 12px !important;
+        gap: 10px !important; 
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        /* 핵심: 너비가 패딩 때문에 늘어나지 않게 함 */
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important; 
+    }
+
+  
+    header .logo, 
+    header a:has(.logo-text),
+    header .logo-text {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        min-width: fit-content !important;
+        z-index: 2;
+    }
+
+    header .header-actions, 
+    header button,
+    header .icon-wrapper {
+        flex-shrink: 0 !important; /* 1에서 0으로 복구: 아이콘 찌그러짐 방지 */
+        z-index: 1;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    header span:not(.logo-text) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    header input, 
+    header .search-bar,
+    header .hide-on-mobile {
+        display: none !important;
+    }
+}

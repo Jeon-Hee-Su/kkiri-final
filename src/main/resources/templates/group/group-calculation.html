@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    <title>KKIRI | 정산하기</title>
+    
+    <script th:src="@{/js/auth/auth-check.js}"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+    
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <link rel="stylesheet" th:href="@{/css/group/group_members.css}" />
+    
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+    <div th:replace="~{fragment/header :: commonHeader}"></div>
+
+    <div class="flex flex-1 relative pt-16 md:pt-20">
+        <div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+       
+       <main th:data-group-id="${group?.groupId}" class="max-w-xl mx-auto p-4 flex flex-col gap-6 w-full mt-2" id="main-container">
+            <div class="flex items-center gap-4 py-4 mb-2">
+                <button onclick="history.back()"
+                    class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 rounded-full shadow-sm">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h2 class="text-xl font-bold">정산 관리</h2>
+            </div>
+            
+        <!-- 지출 내역 섹션 시작 -->
+<section class="flex flex-col gap-4 p-5 md:p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm w-full">
+    <div class="flex justify-between items-center px-1">
+        <h3 class="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <span>지출 내역 선택</span> 
+        </h3>
+        <button id="select-all-transactions" class="text-[11px] font-bold text-blue-600 hover:underline">전체 선택</button>
+    </div>
+
+  <!-- 기간 설정 바-->
+
+<div class="flex items-center justify-center p-3 md:p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl w-full border border-slate-100 mb-4">
+    <div class="flex items-center gap-1 md:gap-3 flex-nowrap">
+        
+        <!-- 시작 날짜 박스 -->
+        <div class="date-click-area relative flex items-center gap-2 cursor-pointer whitespace-nowrap p-2 hover:bg-white/70 rounded-xl transition-all active:scale-95" data-target="start-date">
+            <input type="date" id="start-date" class="absolute opacity-0 w-0 h-0">
+            <span id="start-date-display" class="text-base md:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight pointer-events-none">
+                -
+            </span>
+            <span class="material-symbols-outlined text-blue-600 text-[22px] md:text-[24px] pointer-events-none">calendar_month</span>
+        </div>
+
+        <span class="text-slate-300 font-bold px-1 text-lg">~</span>
+
+        <!-- 종료 날짜 박스 -->
+        <div class="date-click-area relative flex items-center gap-2 cursor-pointer whitespace-nowrap p-2 hover:bg-white/70 rounded-xl transition-all active:scale-95" data-target="end-date">
+            <input type="date" id="end-date" class="absolute opacity-0 w-0 h-0">
+            <span id="end-date-display" class="text-base md:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight pointer-events-none">
+                -
+            </span>
+            <span class="material-symbols-outlined text-blue-600 text-[22px] md:text-[24px] pointer-events-none">calendar_month</span>
+        </div>
+        
+    </div>
+</div>
+    <!-- 영수증 리스트  -->
+    <div id="transaction-container" class="flex flex-col gap-2 w-full">
+        <label th:each="expense : ${expenses}" class="group relative flex items-center gap-3 p-3.5 md:p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm cursor-pointer transition-all w-full has-[:checked]:border-blue-600 has-[:checked]:ring-1 has-[:checked]:ring-blue-600 has-[:checked]:bg-blue-50/10">
+            <input type="checkbox" name="selectedTrans" 
+                   th:value="${expense.expenseId}" 
+                   th:data-amount="${expense.amount}"
+                   class="w-5 h-5 rounded-full border-slate-300 text-blue-600 focus:ring-blue-500">
+            <div class="flex-1 min-w-0"> <!-- min-w-0은 텍스트 생략 방지 -->
+                <p class="text-sm font-bold text-slate-800 dark:text-slate-100 group-has-[:checked]:text-blue-600 transition-colors truncate" 
+                   th:text="${expense.merchantName}">상점명</p>
+                <p class="text-[10px] md:text-[11px] text-slate-400" th:text="${expense.createdAt}">날짜</p>
+            </div>
+            <p class="text-sm md:text-base font-black text-blue-600 whitespace-nowrap" 
+               th:text="${expense.amount != null ? #numbers.formatInteger(expense.amount, 0, 'COMMA') + '원' : '0원'}">0원</p>
+        </label>
+        <p th:if="${#lists.isEmpty(expenses)}" class="text-xs text-slate-400 py-10 text-center font-medium">선택된 기간에 지출 내역이 없습니다.</p>
+    </div>
+</section>
+           
+           <!-- STEP 2: 정산 멤버 섹션 -->
+<section class="flex flex-col gap-4 p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm w-full">
+    <div class="flex justify-between items-center px-1">
+        <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <span>정산 멤버 선택</span> 
+        </h3>
+        
+        <button type="button" id="select-all-members" onclick="toggleSettleMembers(this)" class="text-[11px] font-bold text-blue-600 hover:underline">전체 선택</button>
+    </div>
+
+    <div id="settlement-member-container" class="flex flex-col gap-2 w-full">
+        
+        <th:block th:if="${memberList != null}">
+            <label th:each="member : ${memberList}" class="group flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-transparent cursor-pointer transition-all w-full has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/30">
+                
+               
+                <input type="checkbox" name="settleMember" 
+                       th:value="${member.userId}" checked 
+                       class="settle-checkbox w-5 h-5 rounded-full border-slate-300 text-blue-600 focus:ring-blue-500">
+                
+                <div class="flex-1 text-sm font-bold text-slate-700 dark:text-slate-200 group-has-[:checked]:text-blue-600">
+                    
+                    <span th:text="${member.nickname}">닉네임</span>
+                    
+                   
+                    <span th:if="${member.role == 'HOST'}" class="text-[10px] ml-1 opacity-70">(모임장)</span>
+                </div>
+            </label>
+        </th:block>
+
+        <!-- [수정] 데이터 없을 때 체크 대상 변경 -->
+        <div th:if="${memberList == null or #lists.isEmpty(memberList)}" class="flex flex-col items-center py-10">
+            <p class="text-xs text-slate-400 font-medium">등록된 그룹 멤버가 없습니다.</p>
+            <p class="text-[10px] text-slate-300 mt-1">그룹 관리에서 멤버를 먼저 추가해 주세요.</p>
+        </div>
+    </div>
+</section>
+           
+            <div class="w-full p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-md mt-2">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex flex-col">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">정산 금액</p>
+                        <span id="final-amount" class="text-2xl font-black text-blue-600">0원</span>
+                    </div>
+                    <button onclick="sendSettlementAlarm()" id="btn-send-settlement" class="flex-1 bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl text-white font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
+                        정산 알림 보내기
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragment/footer :: mainFooter}"></div>
+    <script th:src="@{/js/group/group-calculation.js}"></script>
+</body>
+</html>

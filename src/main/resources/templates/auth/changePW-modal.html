@@ -1,0 +1,90 @@
+<div th:fragment="passwordModal" id="pwModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden">
+    <div class="flex flex-col bg-white dark:bg-slate-900 w-full max-w-md rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-none justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">lock_reset</span>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">비밀번호 변경</h3>
+            </div>
+            <button type="button" onclick="closePWModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <form id="pwchangeform" class="p-0 m-0 flex flex-col overflow-hidden">
+            <div class="p-6 space-y-5 overflow-y-auto max-h-[60vh]">
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    계정을 보호하기 위해 본인인증 후 새 비밀번호를 입력하세요.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">본인 확인</label>
+                        <button type="button" id="cert-btn" onclick="requestCertification()"
+                                class="w-full h-14 rounded-2xl bg-primary text-white font-black shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                            인증하기
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">이름</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">person</span>
+                            <input id="name" name="Aname" type="text" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-slate-400" placeholder="이름" readonly/>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">생년월일</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">calendar_today</span>
+                            <input id="birth" name="Abirth" type="text" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-slate-400" placeholder="생년월일" readonly/>
+                        </div>
+                    </div>
+					
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">전화번호</label>
+						<div class="relative">
+					   		<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">phone</span>
+					    	<input id="phoneNumber" name="Aphone" type="text" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-slate-400" placeholder="전화번호" readonly/>
+						</div>
+					</div>
+
+                    <div class="h-px bg-slate-100 dark:bg-slate-800 my-2"></div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">새 비밀번호</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">lock_open</span>
+                            <input id="newpw" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-slate-400" placeholder="새 비밀번호" type="password" />
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">비밀번호 확인</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">verified_user</span>
+                            <input id="confirmpw" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-slate-400" placeholder="비밀번호 확인" type="password" />
+                        </div>
+                    </div>
+
+                    <div class="bg-primary/5 dark:bg-primary/10 p-3 rounded-lg border border-primary/10">
+                        <p id="pwmessage" class="text-xs text-red-600 leading-relaxed">
+                            <strong>비밀번호 조건:</strong> 비밀번호는 소/대문자 및 숫자를 포함하여 8자 이상 작성하셔야 됩니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/30 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" onclick="closePWModal()" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    취소
+                </button>
+                <button id="submit-btn" type="submit" class="px-6 py-2.5 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    비밀번호 변경
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kkiri.mapper.AutoTransferMapper">
+
+	<!--
+        자동이체 대상 조회
+        - 오늘이 납부일인 그룹의 활성 멤버
+        - GROUP_MEMBERS.ACCOUNT_ID로 연결된 개인계좌가 있는 멤버
+        - CUSTOMER_UID(빌링키)가 등록된 멤버
+        - 이번 달 자동이체 성공 내역이 없는 멤버 (중복 방지)
+        - 개인계좌 잔액이 회비 이상인 멤버
+    -->
+	<select id="findAutoTransferTargets" resultType="map">
+		SELECT
+		GM.USER_ID AS "userId",
+		GM.GROUP_ID AS "groupId",
+		GM.ACCOUNT_ID AS "accountId",
+		G.GROUP_NAME AS "groupName",
+		UA.BALANCE AS "userBalance",
+		GS.SUBSCRIPTION_FEE AS "subscriptionFee"
+		FROM GROUP_MEMBERS GM
+		JOIN GROUPS G
+		ON GM.GROUP_ID = G.GROUP_ID
+		JOIN GROUP_SETTINGS GS
+		ON GM.GROUP_ID = GS.GROUP_ID
+		JOIN USER_ACCOUNTS UA
+		ON GM.ACCOUNT_ID = UA.ACCOUNT_ID
+		WHERE GS.DUE_DAY = #{today}
+		AND G.STATUS = 'ACTIVE'
+		AND GM.MEMBER_STATUS = 'JOINED'
+		AND GM.ACCOUNT_ID IS NOT NULL -- 개인계좌 연결된 멤버만
+		AND GS.SUBSCRIPTION_FEE > 0 -- 회비가 0원 초과인 그룹만
+		AND UA.BALANCE >= GS.SUBSCRIPTION_FEE -- 잔액 충분한 멤버만
+		AND NOT EXISTS (
+		SELECT 1
+		FROM TRANSACTIONS T
+		WHERE T.USER_ID = GM.USER_ID
+		AND T.GROUP_ID = GM.GROUP_ID
+		AND T.TRANSACTION_TYPE = 'AUTO_TRANSFER'
+		AND T.STATUS = 'SUCCESS'
+		AND TO_CHAR(T.CREATED_AT, 'YYYYMM') = TO_CHAR(SYSDATE, 'YYYYMM')
+		)
+	</select>
+
+	<!-- 개인계좌 잔액 차감 (잔액 부족 시 0건 반환) -->
+	<update id="deductUserAccountBalance">
+		UPDATE USER_ACCOUNTS
+		SET BALANCE = BALANCE - #{amount}
+		WHERE ACCOUNT_ID = #{accountId}
+		AND BALANCE >= #{amount}
+	</update>
+
+	<!-- 그룹 계좌 잔액 증액 -->
+	<update id="increaseGroupBalance">
+		UPDATE GROUP_ACCOUNT
+		SET BALANCE = BALANCE + #{amount}
+		WHERE GROUP_ID = #{groupId}
+	</update>
+
+	<!-- 자동이체 거래내역 기록 -->
+	<insert id="insertAutoTransferTransaction">
+		<selectKey keyProperty="transactionId" resultType="long" order="BEFORE">
+		SELECT SEQ_TRANSACTION_ID.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO TRANSACTIONS ( TRANSACTION_ID, TARGET_ACCOUNT_ID, USER_ID,
+		GROUP_ID, AMOUNT, TRANSACTION_TYPE, STATUS, PAYMENT_REFERENCE_UID,
+		DESCRIPTION, CREATED_AT ) VALUES ( #{transactionId}, (SELECT ACCOUNT_ID
+		FROM GROUP_ACCOUNT WHERE GROUP_ID = #{groupId}), #{userId}, #{groupId},
+		#{amount}, 'AUTO_TRANSFER', #{status}, #{merchantUid}, #{description},
+		CURRENT_TIMESTAMP ) </insert>
+
+</mapper>

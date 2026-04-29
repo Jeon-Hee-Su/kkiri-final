@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kkiri.mapper.PaymentMapper">
+
+    <!-- 모임 계좌 잔액 증액 (회비 충전용) -->
+    <update id="updateGroupAccountBalance">
+        UPDATE GROUP_ACCOUNT
+        SET BALANCE = BALANCE + #{amount}
+        WHERE GROUP_ID = #{groupId}
+    </update>
+
+    <!-- 현장결제 잔액 차감: 잔액 부족 시 0건 반환 → 서비스에서 예외 처리 -->
+    <update id="deductGroupAccountBalance">
+        UPDATE GROUP_ACCOUNT
+        SET BALANCE = BALANCE - #{amount}
+        WHERE GROUP_ID = #{groupId}
+          AND BALANCE >= #{amount}
+    </update>
+
+    <!-- 기존 충전 거래 내역 기록 -->
+    <insert id="insertTransaction">
+        <selectKey keyProperty="transactionId" resultType="long" order="BEFORE">
+            SELECT SEQ_TRANSACTION_ID.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TRANSACTIONS (
+            TRANSACTION_ID, TARGET_ACCOUNT_ID, AMOUNT,
+            TRANSACTION_TYPE, STATUS, PAYMENT_REFERENCE_UID,
+            DESCRIPTION, CREATED_AT
+        ) VALUES (
+            #{transactionId},
+            (SELECT ACCOUNT_ID FROM GROUP_ACCOUNT WHERE GROUP_ID = #{targetAccountId}),
+            #{amount},
+            #{transactionType},
+            #{status},
+            #{paymentReferenceUid},
+            #{description},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- QR 현장결제 거래 내역 기록 -->
+    <insert id="insertQrTransaction">
+        <selectKey keyProperty="transactionId" resultType="long" order="BEFORE">
+            SELECT SEQ_TRANSACTION_ID.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TRANSACTIONS (
+            TRANSACTION_ID, TARGET_ACCOUNT_ID, AMOUNT,
+            TRANSACTION_TYPE, STATUS,
+            PAYMENT_REFERENCE_UID, DESCRIPTION, CREATED_AT
+        ) VALUES (
+            #{transactionId},
+            (SELECT ACCOUNT_ID FROM GROUP_ACCOUNT WHERE GROUP_ID = #{groupId}),
+            #{amount},
+            'QR_PAYMENT',
+            'SUCCESS',
+            #{referenceUid},
+            #{description},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+</mapper>

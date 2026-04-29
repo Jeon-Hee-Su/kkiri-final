@@ -1,0 +1,21 @@
+
+  body {
+    min-height: 100dvh; 
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+	user-select: none;
+  }
+
+  .main-container {
+
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    
+    padding-bottom: env(safe-area-inset-bottom);
+  }

@@ -1,0 +1,76 @@
+/* 스캔 라인 애니메이션 */
+@keyframes scan {
+    0% { top: 0%; opacity: 0; }
+    50% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+.scan-line {
+    position: absolute;
+    animation: scan 2s linear infinite;
+    z-index: 10;
+}
+
+/* 폼 입력 시 부드러운 전환 */
+#edit-section:not(.hidden) {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 입력창 포커스 스타일 커스텀 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+    cursor: pointer;
+}
+/* 5. 모바일 헤더 대응 (기존 미디어 쿼리 그대로 유지) */
+@media (max-width: 640px) {
+    header.flex.items-center.justify-between {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+    header .flex.items-center.gap-8 {
+        gap: 0.5rem !important;
+    }
+    header .text-right p.text-xs {
+        font-size: 0.7rem !important;
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.scale-in-center {
+    animation: scale-in-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+@keyframes scale-in-center {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+#video {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover; /* 영상 비율을 유지하면서 화면을 꽉 채움 */
+}
+
+/* Chrome, Safari, Edge, Opera - 숫자 인풋 화살표 제거 */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox - 숫자 인풋 화살표 제거 */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* 다크모드 데이트 피커 보정 */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}

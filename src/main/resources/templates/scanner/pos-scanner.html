@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>끼리 | 가맹점 결제 단말기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        body { font-family: -apple-system, sans-serif; background: #0f172a; color: white; display: flex; flex-direction: column; }
+        #app-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        #reader__scan_region { border-radius: 0.75rem; overflow: hidden; }
+        #reader__dashboard_section_swaplink,
+        #html5-qrcode-button-camera-start,
+        #html5-qrcode-button-camera-stop { display: none !important; }
+        #reader__status_span { font-size: 0.7rem; color: #94a3b8; }
+    </style>
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <!--<script th:src="@{/js/auth/auth-common.js}"></script>-->
+</head>
+<body>
+
+    <!-- 헤더 -->
+    <div class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-sm font-black">끼</div>
+            <div>
+                <p class="font-black text-white text-xs leading-none">KKIRI POS</p>
+                <p class="text-[9px] text-slate-400">가맹점 결제 단말기</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="status-text" class="text-[9px] text-slate-400">대기 중</span>
+        </div>
+    </div>
+
+    <!-- 스크롤 가능 본문 -->
+    <div id="app-body" class="px-4 py-4">
+        <div class="max-w-sm mx-auto flex flex-col gap-4">
+
+            <!-- ===== STEP 1: QR 스캔 ===== -->
+            <div id="step-scan">
+                <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2 text-center">STEP 1 · QR 스캔</p>
+
+                <div class="bg-slate-800 rounded-xl overflow-hidden mb-2">
+                    <div id="reader" class="w-full"></div>
+                </div>
+                <p class="text-center text-[10px] text-slate-500 animate-pulse mb-3">고객의 KKIRI QR코드를 카메라에 비춰주세요</p>
+
+                <button onclick="toggleManualInput()"
+                        class="w-full py-2 text-[10px] text-slate-500 border border-slate-700 rounded-lg hover:border-slate-500 transition-colors">
+                    카메라 불가 시 ▾ 토큰 직접 입력
+                </button>
+                <div id="manual-input-area" class="hidden mt-2 flex gap-2">
+                    <input id="manual-token" type="text" placeholder="QR 토큰값 붙여넣기"
+                           class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none"/>
+                    <button onclick="onManualToken()"
+                            class="px-3 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg">확인</button>
+                </div>
+            </div>
+
+            <!-- ===== STEP 2: 금액 입력 ===== -->
+            <div id="step-amount" class="hidden flex flex-col gap-3">
+                <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest text-center">STEP 2 · 결제 금액 입력</p>
+
+                <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <div class="w-6 h-6 bg-emerald-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold text-emerald-400">QR 인증 완료</p>
+                        <p class="text-[9px] text-slate-400 truncate" id="token-preview">-</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4">
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">결제 금액</label>
+                    <div class="flex items-center justify-end gap-1.5 mb-3 border-b border-slate-700 pb-3">
+                        <input type="number" id="payment-amount" placeholder="0"
+                               inputmode="numeric"
+                               class="flex-1 bg-transparent border-none text-right text-3xl font-black text-white focus:ring-0 p-0 placeholder-slate-700 min-w-0"/>
+                        <span class="text-lg font-bold text-slate-400 flex-shrink-0">원</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 mb-2">
+                        <button onclick="addAmount(1000)"  class="py-1.5 bg-slate-700 rounded-lg text-[10px] font-bold text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors">+1천</button>
+                        <button onclick="addAmount(5000)"  class="py-1.5 bg-slate-700 rounded-lg text-[10px] font-bold text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors">+5천</button>
+                        <button onclick="addAmount(10000)" class="py-1.5 bg-slate-700 rounded-lg text-[10px] font-bold text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors">+1만</button>
+                        <button onclick="addAmount(50000)" class="py-1.5 bg-slate-700 rounded-lg text-[10px] font-bold text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors">+5만</button>
+                    </div>
+                    <button onclick="document.getElementById('payment-amount').value=''"
+                            class="w-full py-1 text-[9px] text-red-400">초기화</button>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="resetScanner()"
+                            class="flex-1 py-3 bg-slate-700 text-slate-300 rounded-xl font-bold text-xs">
+                        다시 스캔
+                    </button>
+                    <button onclick="processPayment()"
+                            class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs shadow-lg shadow-indigo-500/30 active:scale-[0.98] transition-all">
+                        결제 승인
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== STEP 3: 결제 결과 ===== -->
+            <div id="step-result" class="hidden">
+
+                <!-- 성공 -->
+                <div id="result-success" class="hidden flex flex-col items-center gap-4 py-4">
+                    <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-slate-400 text-xs mb-0.5">결제 완료</p>
+                        <p id="result-amount" class="text-3xl font-black text-emerald-400"></p>
+                    </div>
+                    <div class="bg-slate-800 rounded-xl px-5 py-3 w-full">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] text-slate-400">차감 후 잔액</span>
+                            <span id="result-remaining" class="font-black text-white text-sm"></span>
+                        </div>
+                        <div class="flex justify-between items-center mt-1.5">
+                            <span class="text-[10px] text-slate-400">그룹 ID</span>
+                            <span id="result-groupid" class="font-bold text-slate-300 text-[10px]"></span>
+                        </div>
+                    </div>
+                    <button onclick="resetScanner()"
+                            class="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-black text-sm">
+                        다음 결제
+                    </button>
+                </div>
+
+                <!-- 실패 (잔액부족 등 일반 오류) -->
+                <div id="result-fail" class="hidden flex flex-col items-center gap-4 py-4">
+                    <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-black text-white mb-1">결제 실패</p>
+                        <p id="result-error-msg" class="text-xs text-red-400"></p>
+                    </div>
+                    <button onclick="resetScanner()"
+                            class="w-full py-3.5 bg-slate-700 text-slate-300 rounded-xl font-bold text-sm">
+                        다시 시도
+                    </button>
+                </div>
+
+                <!-- ✅ 사용된 QR 안내 -->
+                <div id="result-used" class="hidden flex flex-col items-center gap-4 py-4">
+                    <div class="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-black text-white mb-2">사용된 QR코드</p>
+                        <p class="text-xs text-yellow-400 leading-relaxed">
+                            이 QR은 이미 사용되었습니다.<br>
+                            고객에게 새 QR 생성을 요청하세요.
+                        </p>
+                    </div>
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 w-full text-center">
+                        <p class="text-[10px] text-yellow-300">QR코드는 1회만 사용 가능합니다</p>
+                    </div>
+                    <button onclick="resetScanner()"
+                            class="w-full py-3.5 bg-slate-700 text-slate-300 rounded-xl font-bold text-sm">
+                        다시 스캔
+                    </button>
+                </div>
+
+                <!-- ✅ 결제 처리 중 안내 (동시 결제 차단) -->
+                <div id="result-processing" class="hidden flex flex-col items-center gap-4 py-4">
+                    <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-black text-white mb-2">결제 처리 중</p>
+                        <p class="text-xs text-blue-400 leading-relaxed">
+                            다른 단말기에서 결제가 진행 중입니다.<br>
+                            잠시 후 다시 시도해주세요.
+                        </p>
+                    </div>
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl px-4 py-3 w-full text-center">
+                        <p class="text-[10px] text-blue-300">동시 결제는 허용되지 않습니다</p>
+                    </div>
+                    <button onclick="resetScanner()"
+                            class="w-full py-3.5 bg-slate-700 text-slate-300 rounded-xl font-bold text-sm">
+                        다시 시도
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrCode = null;
+        let scannedToken = null;
+
+        window.addEventListener('load', startScanner);
+
+        function startScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().catch(() => {}).finally(() => { html5QrCode = null; initCamera(); });
+            } else {
+                initCamera();
+            }
+        }
+
+        function initCamera() {
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 200, height: 200 } },
+                onScanSuccess,
+                () => {}
+            ).catch(() => {
+                document.getElementById('reader').innerHTML =
+                    '<p class="text-center text-slate-500 text-[10px] py-8 px-4">카메라 권한을 허용하거나<br>아래 수동 입력을 이용해 주세요.</p>';
+                setStatus('카메라 오류', false);
+            });
+            setStatus('스캔 대기', true);
+        }
+
+        function onScanSuccess(decodedText) {
+            html5QrCode.stop().then(() => { html5QrCode = null; handleToken(decodedText); })
+                              .catch(() => handleToken(decodedText));
+        }
+
+        function handleToken(token) {
+            scannedToken = token.trim();
+            document.getElementById('token-preview').textContent =
+                scannedToken.length > 16
+                    ? scannedToken.slice(0, 8) + '...' + scannedToken.slice(-4)
+                    : scannedToken;
+            showStep('step-amount');
+            document.getElementById('payment-amount').focus();
+            setStatus('토큰 인식됨', true);
+        }
+
+        function toggleManualInput() {
+            document.getElementById('manual-input-area').classList.toggle('hidden');
+        }
+
+        function onManualToken() {
+            const val = document.getElementById('manual-token').value.trim();
+            if (!val) { alert('토큰값을 입력하세요.'); return; }
+            if (html5QrCode) {
+                html5QrCode.stop().catch(() => {}).finally(() => { html5QrCode = null; handleToken(val); });
+            } else {
+                handleToken(val);
+            }
+        }
+
+        function addAmount(val) {
+            const el = document.getElementById('payment-amount');
+            el.value = (parseInt(el.value) || 0) + val;
+        }
+
+        async function processPayment() {
+            const amount = parseInt(document.getElementById('payment-amount').value);
+            if (!amount || amount <= 0) { alert('결제 금액을 입력해주세요.'); return; }
+            if (!scannedToken) { alert('QR 코드를 다시 스캔해주세요.'); return; }
+
+            setStatus('결제 처리 중...', true);
+
+            try {
+                const res = await fetch('/api/payment/qr/pay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: scannedToken, amount: amount })
+                });
+
+                const data = await res.json();
+                showStep('step-result');
+
+                // 모든 결과 패널 숨기기
+                ['result-success', 'result-fail', 'result-used', 'result-processing'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+
+                if (res.ok && data.status === 'SUCCESS') {
+                    // ✅ 결제 성공
+                    document.getElementById('result-success').classList.remove('hidden');
+                    document.getElementById('result-amount').textContent = Number(data.deductedAmount).toLocaleString() + '원';
+                    document.getElementById('result-remaining').textContent = Number(data.remainingBalance).toLocaleString() + '원';
+                    document.getElementById('result-groupid').textContent = '그룹 #' + data.groupId;
+                    setStatus('결제 완료', true);
+
+                } else if (data.code === 'USED') {
+                    // ✅ 사용된 QR 안내
+                    document.getElementById('result-used').classList.remove('hidden');
+                    setStatus('사용된 QR', false);
+
+                } else if (data.code === 'PROCESSING') {
+                    // ✅ 처리 중 안내
+                    document.getElementById('result-processing').classList.remove('hidden');
+                    setStatus('처리 중', true);
+
+                } else {
+                    // 잔액부족, 만료 등 일반 오류
+                    document.getElementById('result-fail').classList.remove('hidden');
+                    document.getElementById('result-error-msg').textContent = data.error || '결제 처리 중 오류가 발생했습니다.';
+                    setStatus('결제 실패', false);
+                }
+
+            } catch (e) {
+                showStep('step-result');
+                ['result-success', 'result-used', 'result-processing'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+                document.getElementById('result-fail').classList.remove('hidden');
+                document.getElementById('result-error-msg').textContent = '서버 연결 오류가 발생했습니다.';
+                setStatus('오류', false);
+            }
+        }
+
+        function resetScanner() {
+            scannedToken = null;
+            document.getElementById('payment-amount').value = '';
+            document.getElementById('manual-token').value = '';
+            document.getElementById('manual-input-area').classList.add('hidden');
+            ['result-success', 'result-fail', 'result-used', 'result-processing'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            showStep('step-scan');
+            startScanner();
+        }
+
+        function showStep(id) {
+            ['step-scan', 'step-amount', 'step-result'].forEach(s =>
+                document.getElementById(s).classList.toggle('hidden', s !== id));
+        }
+
+        function setStatus(text, ok) {
+            document.getElementById('status-text').textContent = text;
+            document.getElementById('status-dot').className =
+                'w-1.5 h-1.5 rounded-full ' + (ok ? 'bg-emerald-500 animate-pulse' : 'bg-red-500');
+        }
+    </script>
+</body>
+</html>

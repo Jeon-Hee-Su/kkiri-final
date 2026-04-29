@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<script th:src="@{/js/fragment/side_head.js(v=20260329)}"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script th:src="@{/js/tailwind.js}"></script>
+<script th:src="@{/js/auth/auth-common.js}"></script>
+
+<!-- firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js"></script>
+
+<script src="/resources/js/support/fcm-init.js"></script>
+
+
+<div th:fragment="commonHeader" class="w-full">
+	<div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[105] hidden"
+		onclick="toggleSidebar()"></div>
+	<!--기존 'mobile-overlay'의 명칭을 변경하고 모든 환경에서 사이드바 오픈 시 배경을 어둡게 하도록 수정함.-->
+
+	<header
+		class="fixed top-0 left-0 w-full h-14 flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 lg:px-10 z-[100]">
+		<div class="flex items-center gap-8">
+			<button onclick="toggleSidebar()"
+				class="flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+				<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">menu</span>
+			</button>
+
+			<div class="flex items-center gap-3 text-primary">
+				<button>
+					<div class="size-8 flex items-center justify-center bg-blue-600 rounded-lg shadow-sm">
+						<a th:href="@{/}" class="flex items-center gap-2">
+							<span class="material-symbols-outlined text-white text-[20px]">account_balance_wallet</span>
+						</a>
+					</div>
+				</button>
+				<a th:href="@{/}" class="flex items-center gap-2">
+					<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">우리끼리</h2>
+				</a>
+
+			</div>
+			<!--
+			<label class="hidden md:flex flex-col min-w-64 h-10">
+                <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                    <div class="text-slate-500 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-lg">
+                        <span class="material-symbols-outlined text-[20px]">search</span>
+                    </div>
+                    <input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 focus:ring-0 h-full placeholder:text-slate-500 px-4 rounded-r-lg text-sm font-normal" placeholder="검색어를 입력하세요." value="" />
+                </div>
+            </label>
+-->
+		</div>
+
+		<div class="flex items-center gap-4 h-full">
+			<div id="user-profile-area" class="hidden items-center gap-3">
+				<a th:href="@{/account}" class="flex items-center gap-3">
+					<div id="token-timer-badge"
+						class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold leading-none transition-colors duration-300 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+						<span class="material-symbols-outlined" style="font-size:11px">timer</span>
+						<span id="token-timer-text">--:--</span>
+					</div>
+					<div class="hidden sm:block text-right">
+						<p class="text-xs font-semibold text-slate-900 dark:text-white leading-none">
+							<!-- 로그인 된 사용자 받아서 띄워줌 -->
+							<span id="header-user-name" class="text-slate-900 dark:text-white font-bold">사용자</span>님
+						</p>
+					</div>
+					<div id="header-profile-img"
+						class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20"
+						style="background-image: url('/img/default_profile.jpg');">
+					</div>
+				</a>
+			</div>
+			<div id="guest-header" class="hidden"></div>
+
+			<div id="auth-buttons" class="flex items-center gap-3"></div>
+
+			<form id="logout-form" th:action="@{/api/user/logout}" method="POST" style="display: none;"></form>
+
+			<div class="hidden sm:block h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
+			<div class="flex gap-2">
+				<button id="notibtn" onclick="opennoti()"
+					class="relative flex hidden sm:block items-center justify-center rounded-lg size-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+					<span class="material-symbols-outlined text-[20px]">notifications</span>
+					
+					<span id="red_light" class="hidden absolute top-1 left-1 h-2 w-2">
+						<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+						<span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+					</span>
+				</button>
+				<button
+					class="flex hidden sm:block items-center justify-center rounded-lg size-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+					<a th:href="@{/service_center}">
+						<span class="material-symbols-outlined text-[20px]">help</span>
+					</a>
+				</button>
+			</div>
+		</div>
+		<!-- ── 토큰 만료 임박 경고 모달 (1분 전) ── -->
+		<div id="token-warning-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+			<div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+			<div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[340px] p-7">
+				<button onclick="closeTokenWarningModal()"
+					class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+					<span class="material-symbols-outlined text-[20px]">close</span>
+				</button>
+				<p class="text-slate-900 dark:text-white text-base font-bold leading-snug mb-2">로그인 유지 시간이 곧 만료됩니다.</p>
+				<p class="text-slate-500 dark:text-slate-400 text-sm mb-1">세션이 <strong id="warning-remaining-text"
+						class="text-yellow-500">1분</strong> 후 자동으로 종료됩니다.</p>
+				<p class="text-slate-500 dark:text-slate-400 text-sm mb-6">계속 이용하시려면 아래 버튼을 눌러주세요.</p>
+				<div class="flex gap-3 justify-end">
+					<button onclick="closeTokenWarningModal()"
+						class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">나중에</button>
+					<button onclick="extendSession()"
+						class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">로그인
+						연장하기</button>
+				</div>
+			</div>
+		</div>
+		<!-- ── 토큰 만료 로그아웃 모달 ── -->
+		<div id="token-expired-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+			<div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+			<div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[420px] max-w-[90vw] p-7">
+				<button onclick="closeExpiredModal()"
+					class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+					<span class="material-symbols-outlined text-[20px]">close</span>
+				</button>
+				<p class="text-slate-900 dark:text-white text-base font-bold leading-snug mb-2">로그인 유지 시간이 만료되어<br>자동으로
+					로그아웃되었습니다.</p>
+				<p class="text-slate-500 dark:text-slate-400 text-sm mb-6">로그인이 필요한 경우 '다시 로그인하기' 버튼을 눌러주세요.</p>
+				<div class="flex gap-3 justify-end">
+					<button onclick="closeExpiredModal()"
+						class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">홈으로</button>
+					<button onclick="window.location.href='/auth/login'"
+						class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">다시
+						로그인하기</button>
+				</div>
+			</div>
+		</div>
+	</header>
+	<div th:replace="~{support/notifications-modal :: notificationsModal}"></div>
+	<script th:src="@{/js/support/notifications-modal.js}"></script>
+</div>
+
+</html>

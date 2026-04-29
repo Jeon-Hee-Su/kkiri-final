@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <link rel="stylesheet" th:href="@{/css/auth/login.css}">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/auth/login.js}"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+
+    <title>KKIRI | 로그인</title>
+</head>
+
+<body
+    class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+    
+    <div class="relative flex-1 flex flex-col min-w-0 pt-6 md:pt-12">
+
+        <main class="flex-1 flex items-center justify-center p-6 w-full">
+            <div class="w-full max-w-[440px] flex flex-col gap-8">
+                
+                <div class="text-center flex flex-col gap-3">
+                    <h1 class="text-slate-900 dark:text-slate-100 text-xl md:text-2xl font-bold leading-snug tracking-tight">
+                        오늘도 모임 기록을 확인해 볼까요?
+                    </h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-base font-normal">서비스 이용을 위해 로그인해 주세요</p>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 shadow-sm">
+                    
+                    <form id="loginForm" onsubmit="return false;" class="flex flex-col gap-5">
+                        
+                        <div class="flex flex-col gap-2">
+                            <label class="text-slate-800 dark:text-slate-200 text-sm font-semibold">아이디</label>
+                            <div class="relative">
+                                <input name="loginId" id="loginId"
+                                    class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 h-12 px-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-400"
+                                    placeholder="아이디를 입력하세요" type="text" required />
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center">
+                                <label class="text-slate-800 dark:text-slate-200 text-sm font-semibold">비밀번호</label>
+                                <button type="button" onclick="openchangePW()">
+                                    <span class="text-primary text-xs font-semibold hover:underline">비밀번호를 잊으셨나요?</span>
+                                </button>
+                            </div>
+                            <div class="flex w-full items-stretch group">
+                                <input id="passwordInput" name="password"
+                                    class="w-full flex-1 rounded-l-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 h-12 px-4 focus:ring-0 focus:border-primary outline-none transition-all border-r-0 placeholder:text-slate-400"
+                                    placeholder="비밀번호를 입력하세요" type="password" required />
+                                <div id="passwordToggle"
+                                    class="flex items-center justify-center px-3 border border-slate-300 dark:border-slate-700 border-l-0 bg-white dark:bg-slate-800 rounded-r-lg cursor-pointer text-slate-400 hover:text-primary transition-colors">
+                                    <span id="toggleIcon" class="material-symbols-outlined text-[20px]">visibility</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="loginBtn" type="submit"
+                            class="mt-2 flex w-full cursor-pointer items-center justify-center rounded-lg h-12 px-6 bg-primary text-white text-base font-bold leading-normal tracking-tight hover:brightness-110 active:scale-[0.98] transition-all">
+                            로그인
+                        </button>
+
+                        <div class="flex items-center gap-4 my-2">
+                            <div class="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                            <span class="text-slate-400 text-xs font-medium uppercase tracking-widest">다른 계정으로 로그인</span>
+                            <div class="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                        </div>
+
+                        <div class="flex flex-col gap-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <a th:href="@{/oauth2/authorization/naver}"
+                                    class="flex items-center justify-center gap-2 rounded-lg border border-[#03C75A] dark:border-[#03C75A] h-11 px-2 hover:bg-[#03C75A]/5 transition-colors no-underline">
+                                    <div class="w-5 h-5 flex-shrink-0 bg-[#03C75A] rounded-[2px] flex items-center justify-center">
+                                        <span class="text-white text-[10px] font-black" style="font-family: sans-serif;">N</span>
+                                    </div>
+                                    <span class="text-[#03C75A] text-xs font-bold">네이버</span>
+                                </a>
+
+                                <a th:href="@{/oauth2/authorization/google}"
+                                    class="flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 h-11 px-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors no-underline">
+                                    <div class="w-5 h-5 flex-shrink-0 flex items-center justify-center border-2 border-slate-100 rounded-full bg-white">
+                                        <span class="text-[11px] font-black tracking-tighter" style="font-family: 'serif'; background: linear-gradient(to right, #4285F4, #EA4335, #FBBC05, #34A853); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">G</span>
+                                    </div>
+                                    <span class="text-slate-700 dark:text-slate-300 text-xs font-semibold">Google</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-2">
+                            <p class="text-slate-600 dark:text-slate-400 text-sm">
+                                아직 회원이 아니신가요?
+                                <a class="text-primary font-bold hover:underline" th:href="@{/auth/signupuser}">계정 만들기</a>
+                            </p>
+                        </div>
+                        
+                    </form> </div>
+            </div>
+        </main>
+    </div>
+	<div th:replace="~{auth/changePW-modal :: passwordModal}"></div>
+	<script th:src="@{/js/auth/changePW.js}"></script>
+	<script th:src="@{/js/auth/auth-utils.js}"></script>
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+    <div th:replace="~{fragment/footer :: mainFooter}"></div>
+</body>
+
+</html>

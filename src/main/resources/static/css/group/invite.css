@@ -1,0 +1,9 @@
+
+body { 
+	min-height: max(884px, 100dvh); 
+	user-select: none;
+}
+
+#capture-area {
+	background-color: inherit;
+}

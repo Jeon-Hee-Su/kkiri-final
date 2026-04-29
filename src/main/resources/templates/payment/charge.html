@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>모임 통장 충전</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+</head>
+<body class="bg-slate-50">
+
+    <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">💰 모임 통장 충전</h2>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-600 mb-2">충전 금액</label>
+            <input type="number" id="amount" 
+                   class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none" 
+                   placeholder="충전할 금액을 입력하세요 (원)">
+        </div>
+
+        <button type="button" onclick="payWithKakao()" 
+                class="w-full bg-[#FEE500] hover:bg-[#FADA0A] text-slate-900 font-bold py-4 rounded-lg transition-all flex items-center justify-center gap-2">
+            카카오페이로 결제하기
+        </button>
+
+        <p class="mt-4 text-xs text-center text-slate-400">* 테스트 결제용</p>
+    </div>
+
+    <script>
+        // 🚩 [수정] const IMP 선언 삭제 (SDK에서 이미 제공함)
+        // 만약 초기화가 필요하다면 window.IMP.init을 직접 호출합니다.
+        window.IMP.init("imp73256801"); 
+
+        // 🚩 [수정] 함수를 전역 범위에서 확실히 인식하도록 선언
+        function payWithKakao() {
+            const amountInput = document.getElementById('amount');
+            const amount = amountInput.value;
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupId = urlParams.get('groupId');
+
+            if (!groupId) {
+                alert("모임 정보(ID)를 찾을 수 없습니다.");
+                return;
+            }
+
+            if (!amount || amount < 100) {
+                alert("최소 100원 이상 입력해주세요.");
+                return;
+            }
+
+            window.IMP.request_pay({
+                pg: "kakaopay.TC0ONETIME",
+                pay_method: "card",
+                merchant_uid: "kkiri_" + new Date().getTime(),
+                name: "모임 지원금 충전",
+                amount: amount,
+				m_redirect_url: window.location.origin + "/charge/complete?groupId=" + groupId
+            }, function (rsp) {
+                if (rsp.success) {
+                    fetch('/api/payment/charge', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'accessToken': localStorage.getItem('accessToken')
+                        },
+                        body: JSON.stringify({
+                            imp_uid: rsp.imp_uid,
+                            merchant_uid: rsp.merchant_uid,
+                            amount: rsp.paid_amount,
+                            groupId: groupId,
+                            description: "카카오페이 모임통장 충전"
+                        })
+                    })
+                    .then(res => {
+                        if (res.ok) {
+                            alert("충전이 완료되었습니다!");
+                            location.href = `/group/detail/${groupId}`;
+                        } else {
+                            alert("서버 처리 중 오류가 발생했습니다.");
+                        }
+                    })
+                } else {
+                    alert("결제 실패: " + rsp.error_msg);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

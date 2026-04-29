@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>우리끼리 | 결제수단 관리</title>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>  
+    <script th:src="@{/js/tailwind.js}"></script>
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen">
+    
+    <header th:replace="~{fragment/header :: commonHeader}"></header>
+
+    <div class="flex pt-16 min-h-screen">
+        <div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+        <main class="flex-1 max-w-xl mx-auto w-full px-5 pt-8 pb-32 space-y-8">
+            <section>
+				<button onclick="history.back()" 
+						class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 rounded-full shadow-sm text-slate-500 hover:text-primary transition-all active:scale-95 flex-shrink-0">
+					<span class="material-symbols-outlined text-[22px]">arrow_back</span>
+				</button>
+				
+                <button onclick="openAccountModal()" class="w-full flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:border-primary transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined !text-2xl">add_card</span>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-bold text-slate-900 dark:text-white">새로운 계좌 연결</p>
+                            <p class="text-[11px] text-slate-500">안전한 오픈뱅킹 인증을 통해 등록</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-300">chevron_right</span>
+                </button>
+            </section>
+
+            <section class="space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">내 계좌 리스트</h2>
+                </div>
+
+                <div id="account-list-container">
+                    <div class="py-10 text-center text-slate-400 text-sm">계좌 정보를 불러오는 중...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="accountModal" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[2.5rem] md:rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom md:zoom-in duration-300">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-bold italic text-slate-900 dark:text-white">은행 계좌 연결</h3>
+                <button onclick="closeAccountModal()" class="w-10 h-10 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="addAccountForm" class="flex flex-col gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">은행 선택</label>
+                    <select id="bankCode" name="bankCode" required onchange="previewAccountNumber()" class="w-full h-14 rounded-2xl border-none bg-slate-100 dark:bg-slate-800 px-5 font-bold focus:ring-2 focus:ring-primary outline-none appearance-none text-slate-900 dark:text-white">
+                        <option value="" disabled selected>은행을 선택해 주세요</option>
+                        <option value="088">신한은행</option>
+                        <option value="004">국민은행</option>
+                        <option value="090">카카오뱅크</option>
+                        <option value="092">토스뱅크</option>
+                        <option value="020">우리은행</option>
+                        <option value="011">NH농협은행</option>
+                        <option value="003">IBK기업은행</option>
+                    </select>
+                </div>
+
+                <!-- 서버에서 생성된 계좌번호 미리보기 -->
+                <div id="account-preview-wrap" class="hidden flex flex-col gap-2">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">생성된 계좌번호</label>
+                    <div class="flex gap-2">
+                        <div id="accountNumberDisplay" class="flex-1 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 px-5 font-bold flex items-center text-slate-900 dark:text-white font-mono">
+                            -
+                        </div>
+                        <button type="button" onclick="previewAccountNumber()" class="h-14 px-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-primary hover:text-white transition-colors">
+                            재생성
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400 ml-1">마음에 들지 않으면 재생성 버튼을 눌러 다시 만들 수 있어요.</p>
+                </div>
+                
+                <div class="flex items-start gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl">
+                    <span class="material-symbols-outlined text-indigo-600 text-xl">verified_user</span>
+                    <p class="text-[11px] text-indigo-700 dark:text-indigo-300 font-medium leading-normal">
+                        등록 시 본인 확인을 위해 1원 인증이 진행됩니다.
+                    </p>
+                </div>
+                
+                <button type="submit" class="w-full bg-primary text-white py-4 mt-2 rounded-2xl font-black shadow-lg shadow-primary/30 active:scale-[0.98] transition-all">
+                    계좌 인증 요청
+                </button>
+            </form>
+        </div>
+    </div>
+
+    
+    <!-- ====== 2차 비밀번호 설정 모달 ====== -->
+    <div id="pinModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-[420px] rounded-[3rem] p-10 text-center shadow-2xl border border-slate-100 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-6">
+                <div class="w-8"></div>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white">2차 비밀번호 설정</h3>
+                <button type="button" onclick="closePinModal()" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+            <p id="pin-status-text" class="text-slate-500 text-sm font-bold mb-8">숫자 6자리를 입력해주세요.</p>
+            <div class="flex justify-center gap-5 mb-10">
+                <div class="pin-dot w-5 h-5 rounded-full border-2 border-slate-200 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full border-2 border-slate-200 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full border-2 border-slate-200 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full border-2 border-slate-200 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full border-2 border-slate-200 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full border-2 border-slate-200 transition-all"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <button type="button" onclick="pinInput('1')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">1</button>
+                <button type="button" onclick="pinInput('2')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">2</button>
+                <button type="button" onclick="pinInput('3')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">3</button>
+                <button type="button" onclick="pinInput('4')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">4</button>
+                <button type="button" onclick="pinInput('5')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">5</button>
+                <button type="button" onclick="pinInput('6')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">6</button>
+                <button type="button" onclick="pinInput('7')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">7</button>
+                <button type="button" onclick="pinInput('8')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">8</button>
+                <button type="button" onclick="pinInput('9')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">9</button>
+                <div></div>
+                <button type="button" onclick="pinInput('0')" class="pin-key h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black text-xl text-slate-800 dark:text-white active:bg-primary active:text-white transition-colors">0</button>
+                <button type="button" onclick="pinDelete()" class="h-14 flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-3xl font-black">backspace</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ====== /2차 비밀번호 설정 모달 ====== -->
+
+    <footer th:replace="~{fragment/footer :: mainFooter}"></footer>
+    
+    <script th:src="@{/js/payment/paymentmethod.js}"></script>
+</body>
+</html>

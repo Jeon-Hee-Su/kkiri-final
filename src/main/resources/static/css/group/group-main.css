@@ -1,0 +1,67 @@
+.font-display {
+	font-family: 'Inter', sans-serif;
+}
+
+.body {
+	user-select: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+.swiper-container {
+	width: 100%; padding-bottom: 20px !important;
+}
+
+.swiper-slide {
+	height: auto;
+}
+
+.dashed-border {
+	border: 2px dashed rgba(255, 255, 255, 0.3);
+}
+
+.dashed-add-card {
+	border: 2px dashed #cbd5e1;
+}
+
+/* 터치 하이라이트 제거 */
+* {
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* 하단 바텀시트 애니메이션 */
+@keyframes slide-up {
+	from {
+		transform: translateY(100%);
+	}
+
+	to {
+		transform: translateY(0);
+	}
+}
+
+.animate-slide-up {
+	animation: slide-up 0.3s ease-out forwards;
+}
+
+/* 5. 모바일 헤더 대응 (기존 미디어 쿼리 그대로 유지) */
+@media (max-width: 640px) {
+	header.flex.items-center.justify-between {
+		padding-left: 0.75rem !important;
+		padding-right: 0.75rem !important;
+	}
+
+	header .flex.items-center.gap-8 {
+		gap: 0.5rem !important;
+	}
+
+	header .text-right p.text-xs {
+		font-size: 0.7rem !important;
+		max-width: 60px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}

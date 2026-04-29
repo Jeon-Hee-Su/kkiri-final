@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kkiri.mapper.GroupMapper">
+
+
+    <select id="selectAllActiveGroups" resultType="com.kkiri.model.vo.GroupVO">
+        SELECT 
+            GROUP_ID     as groupId,
+            GROUP_NAME   as groupName,
+            INVITE_CODE  as inviteCode,
+            CATEGORY     as category,
+            STATUS       as status,
+            CREATED_AT   as createdAt,
+            UPDATED_AT   as updatedAt
+        FROM GROUPS
+        WHERE STATUS = 'ACTIVE'
+          AND DELETED_AT IS NULL
+        ORDER BY CREATED_AT DESC
+    </select>
+    
+   <select id="getMemberList" resultType="com.kkiri.model.vo.GroupMemberVO">
+    SELECT 
+        u.USER_ID as userId,
+        u.NICKNAME as userName,        
+        u.EMAIL as userEmail,      
+        u.PROFILE_IMAGE as profileImg, 
+        gm.GROUP_ID as groupId,
+        gm.GROUP_ROLE as groupRole,
+        gm.JOINED_AT as joinedAt      
+    FROM GROUP_MEMBERS gm
+    JOIN USERS u ON gm.USER_ID = u.USER_ID
+    WHERE gm.GROUP_ID = #{groupId}
+      AND gm.MEMBER_STATUS = 'JOINED'  ORDER BY CASE WHEN gm.GROUP_ROLE = 'HOST' THEN 1 ELSE 2 END, gm.JOINED_AT ASC
+</select>
+
+    <select id="findMemberByGroupAndUser" resultType="com.kkiri.model.vo.GroupMemberVO">
+    SELECT 
+        GROUP_ID as groupId,
+        USER_ID as userId,
+        GROUP_ROLE as groupRole,
+        JOINED_AT as joinedAt  FROM GROUP_MEMBERS 
+    WHERE GROUP_ID = #{groupId} AND USER_ID = #{userId}
+</select>
+
+    <delete id="deleteGroupMember">
+        DELETE FROM GROUP_MEMBERS 
+        WHERE GROUP_ID = #{groupId} AND USER_ID = #{userId}
+    </delete>
+    
+    <insert id="insertGroup" parameterType="com.kkiri.model.vo.GroupVO">
+    <selectKey keyProperty="groupId" resultType="int" order="BEFORE">
+        SELECT SEQ_GROUP_ID.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO GROUPS (
+        GROUP_ID,
+        GROUP_NAME,
+        INVITE_CODE,
+        CATEGORY,
+        STATUS,
+        CREATED_AT
+    ) VALUES (
+        #{groupId},
+        #{groupName},
+        #{inviteCode}, 
+        #{category},  
+        'ACTIVE',
+        CURRENT_TIMESTAMP
+    )
+</insert>
+
+    <insert id="insertInitialHost" parameterType="map">
+        INSERT INTO GROUP_MEMBERS (
+        	MAPPING_ID,
+        	GROUP_ID,
+        	USER_ID,
+        	GROUP_ROLE,
+        	ACCOUNT_ID
+        	) VALUES (
+        	SEQ_MAPPING_ID.NEXTVAL,
+        	#{groupId},
+        	#{userId},
+        	'HOST',
+        	#{accountId, jdbcType=NUMERIC}
+        )
+    </insert>
+    
+   
+    <insert id="insertGroupAccount" parameterType="com.kkiri.model.vo.GroupAccountVO">
+      INSERT INTO GROUP_ACCOUNT (
+        GROUP_ID,
+        BANK_CODE,
+        ACCOUNT_NUMBER,
+        BALANCE,
+        PAYMENT_PASSWORD
+        ) VALUES (
+        #{groupId},
+        #{bankCode},
+        #{accountNumber},
+        #{balance},
+        #{paymentPassword}
+        )
+    </insert>
+    
+    <!-- <select id="findGroupsByUserId" resultType="com.kkiri.model.vo.GroupVO">
+    SELECT 
+        G.GROUP_ID as groupId,
+        G.GROUP_NAME as groupName,
+        G.INVITE_CODE as inviteCode,
+        G.CATEGORY as groupPurpose,
+        0 as dueAmount
+    FROM GROUPS G
+    INNER JOIN GROUP_MEMBERS GM ON G.GROUP_ID = GM.GROUP_ID
+    WHERE GM.USER_ID = #{userId} 
+      AND GM.MEMBER_STATUS = 'JOINED' AND G.STATUS = 'ACTIVE'  
+      AND G.DELETED_AT IS NULL
+</select> -->
+   <!--  <select id="findGroupsByUserId" resultType="com.kkiri.model.vo.GroupVO">
+    SELECT 
+        G.GROUP_ID as groupId,
+        G.GROUP_NAME as groupName,
+        G.INVITE_CODE as inviteCode,
+        G.CATEGORY as groupPurpose,
+        0 as dueAmount,
+        GA.ACCOUNT_NUMBER as accountNumber,
+        GA.BALANCE as balance,
+        B.BANK_NAME as bankName
+    FROM GROUPS G
+    INNER JOIN GROUP_MEMBERS GM ON G.GROUP_ID = GM.GROUP_ID
+    LEFT JOIN GROUP_ACCOUNT GA ON G.GROUP_ID = GA.GROUP_ID
+    LEFT JOIN BANKS B ON GA.BANK_CODE = B.BANK_CODE
+    WHERE GM.USER_ID = #{userId} 
+      AND G.STATUS = 'ACTIVE' 
+      AND G.DELETED_AT IS NULL
+</select> -->
+<select id="findGroupsByUserId" resultType="com.kkiri.model.vo.GroupVO">
+    SELECT 
+        G.GROUP_ID      as "groupId",
+        G.GROUP_NAME    as "groupName",
+        G.INVITE_CODE   as "inviteCode",
+        G.CATEGORY      as "category",
+        G.STATUS        as "status",
+        NVL(GS.SUBSCRIPTION_FEE, 0) as "dueAmount",
+        NVL(GS.DUE_DAY, 1)          as "regularDay",                      
+       NVL(DBMS_LOB.SUBSTR(GS.PENALTY_POLICY, 4000, 1), '0') as "penaltyAmount",
+        
+        GA.ACCOUNT_NUMBER as "accountNumber",
+        B.BANK_NAME       as "bankName"
+    FROM GROUPS G
+    INNER JOIN GROUP_MEMBERS GM ON G.GROUP_ID = GM.GROUP_ID
+    LEFT JOIN GROUP_ACCOUNT GA  ON G.GROUP_ID = GA.GROUP_ID
+    LEFT JOIN BANKS B           ON GA.BANK_CODE = B.BANK_CODE
+    LEFT JOIN GROUP_SETTINGS GS ON G.GROUP_ID = GS.GROUP_ID
+    WHERE GM.USER_ID = #{userId} 
+      AND G.STATUS = 'ACTIVE' 
+      AND G.DELETED_AT IS NULL
+</select>
+    <select id="getGroupById" resultType="com.kkiri.model.vo.GroupVO">
+    SELECT 
+        GROUP_ID    as groupId,
+        GROUP_NAME  as groupName,
+        INVITE_CODE as inviteCode,
+        CATEGORY    as category,
+        STATUS      as status
+    FROM GROUPS
+    WHERE GROUP_ID = #{groupId}
+</select>
+    
+   <select id="getGroupByInviteCode" resultType="map">
+    SELECT 
+        g.GROUP_ID      as "groupId",
+        g.GROUP_NAME    as "groupName",
+        g.CATEGORY      as "category",
+        u.NICKNAME      as "hostName",  (SELECT COUNT(*) 
+         FROM GROUP_MEMBERS 
+         WHERE GROUP_ID = g.GROUP_ID 
+           AND MEMBER_STATUS = 'JOINED') as "memberCount" FROM GROUPS g
+    JOIN GROUP_MEMBERS gm ON g.GROUP_ID = gm.GROUP_ID
+    JOIN USERS u ON gm.USER_ID = u.USER_ID
+    WHERE g.INVITE_CODE = #{code} 
+      AND gm.GROUP_ROLE = 'HOST'    AND g.STATUS = 'ACTIVE'
+</select>
+
+
+
+<update id="withdrawUserMoney">
+    UPDATE USER_ACCOUNTS 
+    SET BALANCE = BALANCE - #{amount}
+    WHERE USER_ID = #{userId} 
+      AND IS_PRIMARY = 'Y' 
+      AND BALANCE >= #{amount}
+</update>
+
+<update id="depositGroupMoney">
+    UPDATE GROUP_ACCOUNT 
+    SET BALANCE = BALANCE + #{amount}
+    WHERE GROUP_ID = #{groupId}
+</update>
+
+<update id="depositToGroup">
+    UPDATE GROUP_ACCOUNT
+    SET BALANCE = BALANCE + #{amount}
+    WHERE GROUP_ID = #{groupId}
+</update>
+
+<select id="getGroupAccountByGroupId" resultType="com.kkiri.model.vo.GroupAccountVO">
+    SELECT * FROM GROUP_ACCOUNT WHERE GROUP_ID = #{groupId}
+</select>
+
+
+<insert id="insertGroupMember" parameterType="com.kkiri.model.vo.GroupMemberVO">
+    <selectKey keyProperty="mappingId" resultType="int" order="BEFORE">
+        SELECT SEQ_MAPPING_ID.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO GROUP_MEMBERS (
+        MAPPING_ID,
+        GROUP_ID,
+        USER_ID,
+        GROUP_ROLE,
+        MEMBER_STATUS,
+        ACCOUNT_ID,
+        JOINED_AT ) VALUES (
+        #{mappingId},
+        #{groupId},
+        #{userId},
+        #{groupRole},
+        'JOINED',
+        #{accountId, jdbcType=NUMERIC},
+        CURRENT_TIMESTAMP
+    )
+</insert>
+
+<update id="kickGroupMember">
+    UPDATE GROUP_MEMBERS
+    SET MEMBER_STATUS = 'KICKED',
+        UPDATED_AT = CURRENT_TIMESTAMP
+    WHERE GROUP_ID = #{groupId}
+      AND USER_ID = #{userId}
+      AND GROUP_ROLE != 'HOST' -- 방장은 강퇴 방지
+</update> 
+<!-- <update id="deleteGroup" parameterType="long">
+    UPDATE groups 
+    SET status = 'DELETED', 
+        deleted_at = CURRENT_TIMESTAMP 
+    WHERE group_id = ?
+</update> -->
+<update id="deleteGroupById">
+    UPDATE GROUPS 
+    SET STATUS = 'INACTIVE', 
+        DELETED_AT = CURRENT_TIMESTAMP 
+    WHERE GROUP_ID = #{groupId}
+</update>
+
+<select id="checkKicked" resultType="int">
+    SELECT COUNT(*)
+    FROM GROUP_MEMBERS
+    WHERE GROUP_ID = #{groupId}
+      AND USER_ID = #{userId}
+      AND MEMBER_STATUS = 'KICKED'
+</select>
+
+<select id="checkActiveMember" resultType="int">
+    SELECT COUNT(*)
+    FROM GROUP_MEMBERS
+    WHERE GROUP_ID = #{groupId}
+      AND USER_ID = #{userId}
+      AND MEMBER_STATUS = 'JOINED'
+</select>
+
+<select id="getUserRole" resultType="string">
+    SELECT GROUP_ROLE
+    FROM GROUP_MEMBERS
+    WHERE GROUP_ID = #{groupId}
+      AND USER_ID = #{userId}
+      AND MEMBER_STATUS = 'JOINED'
+</select>
+
+<select id="getGroupBalance" resultType="int">
+   SELECT balance FROM GROUP_ACCOUNT WHERE group_id = #{groupId}
+</select>
+
+<select id="getGroupMemberIds" resultType="int">
+    SELECT user_id FROM group_members WHERE group_id = #{groupId}
+</select>
+<!-- <delete id="deleteGroupById">
+    DELETE FROM groups WHERE group_id = #{groupId}
+</delete> -->
+
+<!-- 특정 그룹의 최근 거래내역 조회 (TARGET_ACCOUNT_ID = 해당 그룹의 ACCOUNT_ID) -->
+<select id="selectRecentTransactionsByGroupId" resultType="com.kkiri.model.vo.TransactionVO">
+    SELECT 
+        t.TRANSACTION_ID       as "transactionId",
+        t.SOURCE_ACCOUNT_ID    as "sourceAccountId",
+        t.TARGET_ACCOUNT_ID    as "targetAccountId",
+        t.AMOUNT               as "amount",
+        t.TRANSACTION_TYPE     as "transactionType",
+        t.STATUS               as "status",
+        t.PAYMENT_REFERENCE_UID as "paymentReferenceUid",
+        t.DESCRIPTION          as "description",
+        t.CREATED_AT           as "createdAt",
+        t.EXPENSE_ID           as "expenseId"
+    FROM TRANSACTIONS t
+    INNER JOIN GROUP_ACCOUNT ga ON t.TARGET_ACCOUNT_ID = ga.ACCOUNT_ID
+    WHERE ga.GROUP_ID = #{groupId}
+      AND t.STATUS = 'SUCCESS'
+    ORDER BY t.CREATED_AT DESC
+    FETCH FIRST #{limit} ROWS ONLY
+</select>
+
+
+
+<!-- <select id="selectGroupDetailById" resultType="com.kkiri.model.dto.GroupDTO$GroupDetailResponse">
+    SELECT 
+        g.GROUP_ID      as "groupId",
+        g.GROUP_NAME    as "groupName",
+        g.INVITE_CODE   as "inviteCode",
+        g.CATEGORY      as "category",
+        ga.ACCOUNT_NUMBER as "accountNumber",
+        ga.BANK_CODE    as "bankCode",
+        ga.BALANCE      as "balance",
+        b.BANK_NAME     as "bankName"
+    FROM GROUPS g
+    LEFT JOIN GROUP_ACCOUNT ga ON g.GROUP_ID = ga.GROUP_ID
+    LEFT JOIN BANKS b ON ga.BANK_CODE = b.BANK_CODE
+    WHERE g.GROUP_ID = #{groupId}
+      AND g.STATUS = 'ACTIVE'
+      AND g.DELETED_AT IS NULL
+</select> -->
+<select id="selectGroupDetailById" resultType="com.kkiri.model.dto.GroupDTO$GroupDetailResponse">
+    SELECT 
+        g.GROUP_ID        as "groupId",
+        g.GROUP_NAME      as "groupName",
+        g.CATEGORY        as "category",  ga.ACCOUNT_NUMBER as "accountNumber",
+        b.BANK_NAME       as "bankName",
+        ga.BALANCE        as "balance",
+        NVL(gs.SUBSCRIPTION_FEE, 0) as "dueAmount",
+        NVL(gs.DUE_DAY, 1)          as "regularDay",
+        NVL(gs.PENALTY_DAY, 0)      as "penaltyDay", 
+        NVL(DBMS_LOB.SUBSTR(gs.PENALTY_POLICY, 4000, 1), '0') as "penaltyAmount"      
+    FROM GROUPS g
+    LEFT JOIN GROUP_ACCOUNT GA  ON g.GROUP_ID = ga.GROUP_ID
+    LEFT JOIN BANKS B           ON ga.BANK_CODE = b.BANK_CODE
+    LEFT JOIN GROUP_SETTINGS GS ON g.GROUP_ID = gs.GROUP_ID
+    WHERE g.GROUP_ID = #{groupId}
+      AND g.STATUS = 'ACTIVE'
+      AND g.DELETED_AT IS NULL
+</select>
+
+<select id="selectGroupsByUserId" resultType="com.kkiri.model.dto.GroupDTO$GroupListResponseLong">
+    SELECT 
+        g.GROUP_ID      as "groupId",
+        g.GROUP_NAME    as "groupName",
+        g.CATEGORY      as "category",
+        gm.GROUP_ROLE   as "groupRole",
+        ga.BALANCE      as "balance"
+    FROM GROUP_MEMBERS gm
+    INNER JOIN GROUPS g ON gm.GROUP_ID = g.GROUP_ID
+    LEFT JOIN GROUP_ACCOUNT ga ON g.GROUP_ID = ga.GROUP_ID
+    WHERE gm.USER_ID = #{userId}
+      <!--AND gm.MEMBER_STATUS = 'JOINED_AT'
+      AND g.STATUS = 'ACTIVE'
+      AND g.DELETED_AT IS NULL-->
+</select>
+
+<!-- <select id="findMembersByGroupId" resultType="com.kkiri.model.vo.UserVO">
+    SELECT u.* FROM users u 
+    JOIN group_members gm ON u.user_id = gm.user_id 
+    WHERE gm.group_id = #{groupId}
+</select>
+ -->
+<select id="findMembersByGroupId" resultType="com.kkiri.model.vo.UserVO">
+    SELECT 
+        u.USER_ID as userId, 
+        u.NICKNAME as nickname, 
+        u.EMAIL as email, 
+        gm.GROUP_ROLE as role
+    FROM USERS u
+    JOIN GROUP_MEMBERS gm ON u.USER_ID = gm.USER_ID
+    WHERE gm.GROUP_ID = #{groupId}
+    AND gm.MEMBER_STATUS = 'JOINED'
+    ORDER BY 
+        CASE WHEN gm.GROUP_ROLE = 'HOST' THEN 1 ELSE 2 END, 
+        u.NICKNAME ASC
+</select>
+<select id="getHostIdByGroupId" resultType="int">
+    SELECT USER_ID 
+    FROM GROUP_MEMBERS 
+    WHERE GROUP_ID = #{groupId} 
+      AND GROUP_ROLE = 'HOST' 
+      AND MEMBER_STATUS = 'JOINED'
+</select>
+
+<update id="updateGroupInfo">
+    UPDATE GROUPS
+    SET 
+        GROUP_NAME = #{groupName},
+        CATEGORY = #{category}
+    WHERE GROUP_ID = #{groupId}
+</update>
+<update id="updateGroupFeeRules">
+    MERGE INTO GROUP_SETTINGS gs
+    USING DUAL
+    ON (gs.group_id = #{groupId})
+    WHEN MATCHED THEN
+        UPDATE SET 
+            subscription_fee = #{regularAmount},
+            due_day = #{regularDay},
+            is_use_penalty = 'Y',
+            penalty_day = #{penaltyDay},       penalty_policy = #{penaltyAmount},
+            updated_at = CURRENT_TIMESTAMP
+    WHEN NOT MATCHED THEN
+        INSERT (group_id, subscription_fee, due_day, is_use_penalty, penalty_day, penalty_policy, updated_at)
+        VALUES (#{groupId}, #{regularAmount}, #{regularDay}, 'Y', #{penaltyDay}, #{penaltyAmount}, CURRENT_TIMESTAMP)
+        </update>
+ <insert id="insertNotification">
+    INSERT INTO NOTIFICATIONS (USER_ID, MESSAGE, TARGET_TYPE, TARGET_ID, IS_READ, CREATED_AT)
+    VALUES (#{userId}, #{message}, 'GROUP', #{groupId}, 'N', CURRENT_TIMESTAMP)
+</insert>
+<select id="selectGroupVOById" resultType="com.kkiri.model.vo.GroupVO">
+    SELECT 
+        g.group_id as "groupId",
+        m.user_id as "userId",       
+        g.group_name as "groupName",
+        g.invite_code as "inviteCode",
+        g.category,
+        g.status,
+        g.created_at as "createdAt"
+    FROM groups g
+    LEFT JOIN group_members m ON g.group_id = m.group_id
+    WHERE g.group_id = #{groupId}
+      AND m.group_role = 'HOST'      
+</select>
+
+<select id="selectGroupMembers" resultType="com.kkiri.model.vo.GroupMemberVO">
+    SELECT 
+        gm.group_id as groupId,
+        gm.user_id as userId,
+        u.user_name as userName, 
+        gm.group_role as groupRole
+    FROM group_members gm
+    JOIN users u ON gm.user_id = u.user_id
+    WHERE gm.group_id = #{groupId}
+      AND gm.member_status = 'JOINED' 
+</select>
+
+<!-- 회비채우기 / 입금 등 거래 내역 기록 (GROUP_ACCOUNT의 ACCOUNT_ID를 group_id로 서브쿼리) -->
+<insert id="insertGroupTransaction" parameterType="com.kkiri.model.vo.TransactionVO">
+    <selectKey keyProperty="transactionId" resultType="long" order="BEFORE">
+        SELECT SEQ_TRANSACTION_ID.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO TRANSACTIONS (
+        TRANSACTION_ID,
+        SOURCE_ACCOUNT_ID,
+        TARGET_ACCOUNT_ID,
+        AMOUNT,
+        TRANSACTION_TYPE,
+        STATUS,
+        PAYMENT_REFERENCE_UID,
+        DESCRIPTION,
+        CREATED_AT
+    ) VALUES (
+        #{transactionId},
+        #{sourceAccountId},
+        #{targetAccountId},
+        #{amount},
+        #{transactionType},
+        #{status},
+        #{paymentReferenceUid},
+        #{description},
+        CURRENT_TIMESTAMP
+    )
+</insert>
+
+<!-- <select id="selectExpensesList" resultType="map">
+    SELECT 
+        EXPENSE_ID, GROUP_ID, MERCHANT_NAME, AMOUNT, 
+        TO_CHAR(CREATED_AT, 'MM.DD HH24:MI') as CREATED_AT 
+    FROM EXPENSES 
+    WHERE GROUP_ID = #{groupId}
+    
+    <if test="startDate != null and startDate != ''">
+        <![CDATA[ AND CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+    </if>
+    
+    <if test="endDate != null and endDate != ''">
+        <![CDATA[ AND CREATED_AT <= TO_DATE(#{endDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS') ]]>
+    </if>
+    
+    ORDER BY CREATED_AT DESC
+</select> -->
+<select id="selectExpensesList" resultType="map">
+    SELECT 
+        EXPENSE_ID as "expenseId", 
+        GROUP_ID as "groupId", 
+        MERCHANT_NAME as "merchantName", 
+        AMOUNT as "amount", 
+        PAYMENT_ACCOUNT_TYPE as "paymentAccountType",  TO_CHAR(CREATED_AT, 'YYYY.MM.DD HH24:MI') as "createdAt" FROM EXPENSES 
+    WHERE GROUP_ID = #{groupId}
+    
+    <if test="startDate != null and startDate != ''">
+        <![CDATA[ AND CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+    </if>
+    
+    <if test="endDate != null and endDate != ''">
+        <![CDATA[ AND CREATED_AT <= TO_DATE(#{endDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS') ]]>
+    </if>
+    
+    ORDER BY CREATED_AT DESC
+</select>
+<select id="getGroupExpenseSummary" resultType="map">
+    SELECT 
+        NVL(SUM(CASE WHEN AMOUNT &gt; 0 THEN AMOUNT ELSE 0 END), 0) as "totalDeposit",
+        NVL(SUM(CASE WHEN AMOUNT &lt; 0 THEN ABS(AMOUNT) ELSE 0 END), 0) as "totalWithdraw"
+    FROM EXPENSES
+    WHERE GROUP_ID = #{groupId}
+</select>
+
+<!-- ★ 추가: 멤버의 ACCOUNT_ID 업데이트 (신규/기존 멤버 모두) -->
+<update id="updateMemberAccountId">
+    UPDATE GROUP_MEMBERS
+    SET ACCOUNT_ID = #{accountId}
+    WHERE GROUP_ID = #{groupId}
+      AND USER_ID  = #{userId}
+</update>
+
+
+    <!-- 특정 그룹에서 현재 유저의 연결 계좌(ACCOUNT_ID) 조회 -->
+    <select id="getLinkedAccountByGroupAndUser" resultType="com.kkiri.model.dto.AccountDTO$AccountInfo">
+        SELECT 
+            UA.ACCOUNT_ID     AS accountId,
+            B.BANK_NAME       AS bankName,
+            UA.ACCOUNT_NUMBER AS accountNumber,
+            UA.IS_PRIMARY     AS isDefault,
+            UA.BALANCE        AS balance
+        FROM GROUP_MEMBERS GM
+        JOIN USER_ACCOUNTS UA ON GM.ACCOUNT_ID = UA.ACCOUNT_ID
+        LEFT JOIN BANKS B ON UA.BANK_CODE = B.BANK_CODE
+        WHERE GM.GROUP_ID = #{groupId}
+          AND GM.USER_ID  = #{userId}
+          AND GM.ACCOUNT_ID IS NOT NULL
+    </select>
+
+
+<!-- 날짜 범위 거래내역 조회 (group-history 페이지용) -->
+<select id="selectTransactionsByGroupIdAndDateRange" resultType="com.kkiri.model.vo.TransactionVO">
+    SELECT
+        t.TRANSACTION_ID        AS "transactionId",
+        t.SOURCE_ACCOUNT_ID     AS "sourceAccountId",
+        t.TARGET_ACCOUNT_ID     AS "targetAccountId",
+        CASE t.TRANSACTION_TYPE
+            WHEN 'QR_PAYMENT'    THEN -t.AMOUNT
+            WHEN 'AUTO_TRANSFER' THEN -t.AMOUNT
+            ELSE t.AMOUNT
+        END                     AS "amount",
+        t.TRANSACTION_TYPE      AS "transactionType",
+        t.STATUS                AS "status",
+        t.PAYMENT_REFERENCE_UID AS "paymentReferenceUid",
+        t.DESCRIPTION           AS "description",
+        t.CREATED_AT            AS "createdAt",
+        ga.BALANCE              AS "balanceAfter",
+        t.EXPENSE_ID            AS "expenseId",
+        CASE t.TRANSACTION_TYPE
+            WHEN 'AUTO_TRANSFER'    THEN '자동이체'
+            WHEN 'QR_PAYMENT'       THEN 'QR결제'
+            WHEN 'V_ACCOUNT_DEPOSIT'THEN '회비입금'
+            WHEN 'MANUAL_TRANSFER'  THEN '수동이체'
+            ELSE '일반'
+        END AS "category"
+    FROM TRANSACTIONS t
+    INNER JOIN GROUP_ACCOUNT ga ON t.TARGET_ACCOUNT_ID = ga.ACCOUNT_ID
+    WHERE ga.GROUP_ID = #{groupId}
+      AND t.STATUS = 'SUCCESS'
+      AND t.CREATED_AT &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+      AND t.CREATED_AT &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+    ORDER BY t.CREATED_AT DESC
+</select>
+
+    <!-- 거래 ID로 실제 결제 금액 조회 (영수증 저장 전 금액 검증용) -->
+    <select id="selectTransactionAmountById" resultType="java.lang.Long">
+        SELECT AMOUNT FROM TRANSACTIONS WHERE TRANSACTION_ID = #{transactionId}
+    </select>
+
+</mapper>

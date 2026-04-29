@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    <title>KKIRI | 멤버 관리</title>
+    
+    <script th:src="@{/js/auth/auth-check.js}"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+    
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <link rel="stylesheet" th:href="@{/css/group/group_members.css}" />
+    
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen pb-20">
+    <div th:replace="~{fragment/header :: commonHeader}"></div>
+
+    <div class="flex flex-1 relative pt-16 md:pt-20">
+        <div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+        <main th:data-group-id="${group.groupId}" class="max-w-xl mx-auto p-5 flex flex-col gap-6 w-full mt-4" id="main-container">
+            <div class="flex items-center justify-between py-4 mb-2">
+                <div class="flex items-center gap-4">
+                    <button onclick="history.back()"
+                        class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 rounded-full shadow-sm hover:scale-105 transition-all">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <h2 class="text-xl font-bold">멤버 관리</h2>
+					<select id="group-switcher" class="mt-1 text-xs font-bold border-none bg-transparent p-0 text-emerald-600 focus:ring-0 cursor-pointer">
+					            <option value="" disabled>모임 전환</option>
+					            </select>
+                </div>
+				<button onclick="location.href='/invite?groupId=' + document.getElementById('main-container').getAttribute('data-group-id')"
+				        class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 px-4 py-2 rounded-xl shadow-lg shadow-emerald-200/50 dark:shadow-none transition-all active:scale-95 group">
+				    
+				    <div class="flex flex-col items-start">
+				        <p class="text-[9px] text-emerald-100 font-bold uppercase leading-none mb-1">Invite</p>
+				        <span class="text-sm font-black text-white">초대장 보내기</span>
+				    </div>
+
+				    <div class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-lg text-white group-hover:translate-x-1 transition-transform">
+				        <span class="material-symbols-outlined text-[20px]">send</span>
+				    </div>
+				</button>
+            </div>
+
+            <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl mb-2">
+                <button id="tab-active" class="flex-1 py-2.5 rounded-xl text-sm font-black bg-white dark:bg-slate-700 shadow-sm text-emerald-600 transition-all">
+                    참여 멤버
+                </button>
+            </div>
+
+            <section class="flex flex-col gap-4">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-sm font-bold text-slate-500">현재 멤버 <span id="member-count" class="text-emerald-600">0</span>명</h3>
+                </div>
+
+                <div id="member-container" class="flex flex-col gap-3">
+                    <p class="text-center text-slate-400 py-10">멤버 목록을 불러오는 중...</p>
+                </div>
+            </section>
+
+            <div class="mt-4 p-5 bg-slate-100 dark:bg-slate-800 rounded-[2rem] border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    멤버 추방 시 해당 사용자는 더 이상 모임 통장 내역을 볼 수 없으며,<br>
+                    <span class="text-rose-500 font-medium">정산(SETTLEMENTS)</span> 절차가 진행 중인 경우 주의가 필요합니다.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /* 백엔드 개발자님: 
+           하단 group_members.js 내부의 memberList 변수를 
+           실제 API 호출 결과로 대체해주시면 됩니다. 
+        */
+    </script>
+    <script th:src="@{/js/group/group-members.js}"></script>
+</body>
+</html>

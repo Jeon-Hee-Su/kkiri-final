@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kkiri.mapper.FcmMapper">
+
+<update id="saveOrUpdateToken">
+    MERGE INTO FCM_TOKENS t
+    USING (
+        SELECT 
+            #{uuid} AS uuid_val,
+            #{userId} AS user_id,
+            #{fcmToken} AS fcm_token
+        FROM DUAL
+    ) s
+    ON (t.UUID = s.uuid_val AND t.USER_ID = s.user_id)
+    WHEN MATCHED THEN
+        UPDATE SET 
+            t.FCM_TOKEN = s.fcm_token, 
+            t.LAST_LOGIN = SYSDATE
+            WHEN NOT MATCHED THEN
+        INSERT (
+            TOKEN_ID, 
+            USER_ID, 
+            FCM_TOKEN, 
+            DEVICE_TYPE, 
+            LAST_LOGIN,
+            UUID
+        )
+        VALUES (
+            SEQ_FCM_TOKEN.NEXTVAL, 
+            s.user_id, 
+            s.fcm_token, 
+            'WEB', 
+            SYSDATE,
+            s.uuid_val
+        )
+</update>
+
+    <delete id="deleteToken">
+        DELETE 
+        FROM FCM_TOKENS 
+        WHERE FCM_TOKEN = #{fcmToken}
+    </delete>
+
+    <select id="findAllTokensByUserId" resultType="string">
+        SELECT FCM_TOKEN 
+        FROM FCM_TOKENS 
+        WHERE USER_ID = #{userId}
+    </select>
+
+</mapper>

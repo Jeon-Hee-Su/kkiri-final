@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8" />
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+	<link rel="stylesheet" th:href="@{/css/auth/sign_up.css}">
+	<link rel="stylesheet" th:href="@{/css/material.css}">
+
+	<script th:src="@{/js/auth/sign_up.js}"></script>
+	<script th:src="@{/js/auth/auth-utils.js}"></script>
+	<script th:src="@{/js/tailwind.js}"></script>
+	<script th:src="@{/js/fragment/side_head.js}"></script>
+
+	<title>회원가입 완료 | 계정 시스템</title>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+	<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+		<div class="layout-container flex h-full grow flex-col">
+
+			<div th:replace="~{fragment/header :: commonHeader}"></div>
+
+			<div class="flex flex-1">
+				<div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+				<main class="flex-1 flex items-center justify-center py-10 px-4">
+					<div
+						class="w-full max-w-[500px] bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800">
+
+						<div class="text-center mb-6">
+							<h1 class="text-3xl font-black mb-2 tracking-tight">회원가입 완료</h1>
+							<p class="text-slate-500 text-sm font-medium">추가 정보를 채워주세요.</p>
+						</div>
+
+						<div class="mb-6 p-4 bg-primary/5 rounded-2xl border border-primary/20 flex items-center gap-4">
+							<img class="w-8 h-8" th:src="${session.pendingSocial?.provider == 'kakao' ? '/images/kakao_logo.png' : 
+                                         (session.pendingSocial?.provider == 'naver' ? '/images/naver_logo.png' : 
+                                         'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png')}"
+								th:alt="${session.pendingSocial?.provider}" />
+
+							<div class="flex-1 overflow-hidden">
+								<p class="text-[10px] font-bold text-primary uppercase tracking-wider">인증된 가입 아이디</p>
+								<p id="display-email"
+									class="text-sm font-semibold truncate text-slate-700 dark:text-slate-200">
+									정보를 불러오는 중...
+								</p>
+							</div>
+							<svg class="text-green-500 w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none"
+								viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+									d="M5 13l4 4L19 7" />
+							</svg>
+						</div>
+
+						<form id="signupForm" class="flex flex-col gap-4">
+							<input type="hidden" id="hidden-email" name="email">
+
+							<div class="flex flex-col gap-1.5 mb-2">
+								<label class="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">본인 확인</label>
+								<button type="button" id="cert-btn" onclick="requestCertification()"
+									class="w-full h-14 rounded-2xl bg-primary text-white font-black shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2">
+									<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+										fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+										stroke-linejoin="round">
+										<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+									</svg>
+									인증하기
+								</button>
+							</div>
+
+							<hr class="border-slate-100 dark:border-slate-800 my-2">
+
+							<div class="flex flex-col gap-1.5">
+								<label class="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">이름</label>
+								<div class="relative">
+									<div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+										<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+											stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+											<line x1="16" y1="2" x2="16" y2="6" />
+											<line x1="8" y1="2" x2="8" y2="6" />
+											<line x1="3" y1="10" x2="21" y2="10" />
+										</svg>
+									</div>
+									<input required id="name" name="name" type="text" readonly
+										class="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-100 dark:bg-slate-800 border-none cursor-not-allowed text-slate-400 font-medium"
+										placeholder="인증 시 자동 입력">
+								</div>
+							</div>
+							<div class="flex flex-col gap-1.5">
+								<label class="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">생년월일</label>
+								<div class="relative">
+									<div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+										<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+											viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+											stroke-linecap="round" stroke-linejoin="round">
+											<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+											<line x1="16" y1="2" x2="16" y2="6" />
+											<line x1="8" y1="2" x2="8" y2="6" />
+											<line x1="3" y1="10" x2="21" y2="10" />
+										</svg>
+									</div>
+									<input required id="birth" name="birth" type="text" readonly
+										class="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-100 dark:bg-slate-800 border-none cursor-not-allowed text-slate-400 font-medium"
+										placeholder="인증 시 자동 입력">
+								</div>
+							</div>
+
+							<div class="flex flex-col gap-1.5">
+								<label class="text-sm font-bold ml-1 text-slate-700 dark:text-slate-300">전화번호</label>
+								<div class="relative">
+									<div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+										<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+											viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+											stroke-linecap="round" stroke-linejoin="round">
+											<rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+											<line x1="12" y1="18" x2="12.01" y2="18" />
+										</svg>
+									</div>
+									<input required id="phoneNumber" name="phoneNumber" type="tel" readonly
+										class="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-100 dark:bg-slate-800 border-none cursor-not-allowed text-slate-400 font-medium"
+										placeholder="인증 시 자동 입력">
+								</div>
+							</div>
+
+							<div
+								class="mt-4 space-y-3 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+								<label
+									class="flex items-center gap-3 cursor-pointer group pb-2 border-b border-slate-200 dark:border-slate-700">
+									<input type="checkbox" id="check-all"
+										class="w-5 h-5 rounded border-slate-300 text-[#0066FF] focus:ring-blue-500/20 transition-all">
+									<span class="text-sm font-bold text-slate-800 dark:text-slate-200">전체 동의하기</span>
+								</label>
+
+								<div class="flex items-center justify-between">
+									<label class="flex items-center gap-3 cursor-pointer">
+										<input required type="checkbox" id="agree1"
+											class="agree-item w-4 h-4 rounded border-slate-300 text-[#0066FF]">
+										<span class="text-xs text-slate-600 dark:text-slate-400">(필수) 서비스 이용약관 동의</span>
+									</label>
+									<button type="button" onclick="openModal('agree1')"
+										class="text-[10px] text-slate-400 underline hover:text-blue-500">보기</button>
+								</div>
+
+								<div class="flex items-center justify-between">
+									<label class="flex items-center gap-3 cursor-pointer">
+										<input required type="checkbox" id="agree2"
+											class="agree-item w-4 h-4 rounded border-slate-300 text-[#0066FF]">
+										<span class="text-xs text-slate-600 dark:text-slate-400">(필수) 개인정보 수집 및 이용
+											동의</span>
+									</label>
+									<button type="button" onclick="openModal('agree2')"
+										class="text-[10px] text-slate-400 underline hover:text-blue-500">보기</button>
+								</div>
+
+								<button type="submit"
+									class="w-full h-14 bg-[#0066FF] text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:bg-[#0052CC] active:scale-[0.98] mt-4 transition-all">
+									가입 완료하기
+									<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+										fill="none" stroke="white" stroke-width="3" stroke-linecap="round"
+										stroke-linejoin="round">
+										<line x1="5" y1="12" x2="19" y2="12" />
+										<polyline points="12 5 19 12 12 19" />
+									</svg>
+								</button>
+						</form>
+					</div>
+				</main>
+			</div>
+		</div>
+	</div>
+
+	<div th:replace="~{fragment/footer :: mainFooter}"></div>
+	<div id="modal-privacy"
+		class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+		<div
+			class="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+			<div
+				class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+				<h3 class="font-bold text-slate-800 dark:text-white">약관 및 개인정보 처리방침</h3>
+				<button type="button" onclick="closeModal()"
+					class="text-slate-400 hover:text-slate-600">&times;</button>
+			</div>
+			<div class="p-6 max-h-[400px] overflow-y-auto text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+				<p class="mb-4 font-bold text-slate-800 dark:text-white">1. 개인정보 수집 항목</p>
+				<p class="mb-4">성명, 이메일, 휴대전화번호, 생년월일 (본인인증을 통해 수집)</p>
+				<p class="mb-4 font-bold text-slate-800 dark:text-white">2. 이용 목적</p>
+				<p class="mb-4">회원 가입 및 서비스 이용 시 본인 확인</p>
+				<p class="font-bold text-slate-800 dark:text-white">3. 보유 기간</p>
+				<p>회원 탈퇴 시까지</p>
+			</div>
+			<div class="p-5 border-t border-slate-100 dark:border-slate-800">
+				<button type="button" onclick="closeModalWithCheck()"
+					class="w-full py-4 bg-[#0066FF] text-white rounded-xl font-bold">확인했습니다</button>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>

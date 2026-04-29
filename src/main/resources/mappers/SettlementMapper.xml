@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kkiri.mapper.SettlementMapper">
+
+    <!-- 정산 생성 -->
+    <insert id="insertSettlement" parameterType="com.kkiri.model.vo.SettlementVO"
+            useGeneratedKeys="false">
+        <selectKey keyProperty="settlementId" resultType="int" order="BEFORE">
+            SELECT SETTLEMENTS_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO SETTLEMENTS (
+            SETTLEMENT_ID, EXPENSE_ID, GROUP_ID, TITLE,
+            TOTAL_AMOUNT, TOTAL_PENALTY_AMOUNT, STATUS, CREATED_AT
+        ) VALUES (
+            #{settlementId}, #{expenseId}, #{groupId}, #{title},
+            #{totalAmount}, 0, 'PROCEEDING', CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 정산 상세 일괄 생성 (PL/SQL 블록으로 개별 INSERT - NEXTVAL 중복 방지) -->
+    <insert id="insertSettlementDetails">
+        BEGIN
+        <foreach collection="details" item="d" separator="">
+            INSERT INTO SETTLEMENT_DETAILS (
+                DETAIL_ID, SETTLEMENT_ID, USER_ID,
+                AMOUNT_DUE, PENALTY_AMOUNT, STATUS, UPDATED_AT
+            ) VALUES (
+                SETTLEMENT_DETAILS_SEQ.NEXTVAL, #{d.settlementId}, #{d.userId},
+                #{d.amountDue}, 0, 'WAITING', CURRENT_TIMESTAMP
+            );
+        </foreach>
+        END;
+    </insert>
+
+    <!-- 그룹의 정산 목록 (진행중 우선, 이후 완료) -->
+    <select id="selectSettlementsByGroupId" resultType="com.kkiri.model.vo.SettlementVO">
+        SELECT
+            s.SETTLEMENT_ID   AS settlementId,
+            s.EXPENSE_ID      AS expenseId,
+            s.GROUP_ID        AS groupId,
+            s.TITLE           AS title,
+            s.TOTAL_AMOUNT    AS totalAmount,
+            s.TOTAL_PENALTY_AMOUNT AS totalPenaltyAmount,
+            s.STATUS          AS status,
+            TO_CHAR(s.CREATED_AT, 'YYYY-MM-DD HH24:MI') AS createdAt,
+            COUNT(d.DETAIL_ID)                            AS totalCount,
+            SUM(CASE WHEN d.STATUS = 'PAID' THEN 1 ELSE 0 END) AS paidCount
+        FROM SETTLEMENTS s
+        LEFT JOIN SETTLEMENT_DETAILS d ON s.SETTLEMENT_ID = d.SETTLEMENT_ID
+        WHERE s.GROUP_ID = #{groupId}
+        GROUP BY s.SETTLEMENT_ID, s.EXPENSE_ID, s.GROUP_ID, s.TITLE,
+                 s.TOTAL_AMOUNT, s.TOTAL_PENALTY_AMOUNT, s.STATUS, s.CREATED_AT
+        ORDER BY CASE WHEN s.STATUS = 'PROCEEDING' THEN 0 ELSE 1 END,
+                 s.CREATED_AT DESC
+    </select>
+
+    <!-- 특정 정산 상세 목록 -->
+    <select id="selectDetailsBySettlementId" resultType="com.kkiri.model.vo.SettlementDetailVO">
+        SELECT
+            d.DETAIL_ID       AS detailId,
+            d.SETTLEMENT_ID   AS settlementId,
+            d.USER_ID         AS userId,
+            u.NICKNAME        AS userName,
+            u.PROFILE_IMAGE   AS profileImg,
+            d.AMOUNT_DUE      AS amountDue,
+            d.PENALTY_AMOUNT  AS penaltyAmount,
+            d.STATUS          AS status,
+            TO_CHAR(d.PAID_AT,   'YYYY-MM-DD HH24:MI') AS paidAt,
+            TO_CHAR(d.UPDATED_AT,'YYYY-MM-DD HH24:MI') AS updatedAt
+        FROM SETTLEMENT_DETAILS d
+        JOIN USERS u ON d.USER_ID = u.USER_ID
+        WHERE d.SETTLEMENT_ID = #{settlementId}
+        ORDER BY d.STATUS ASC, u.NICKNAME ASC
+    </select>
+
+    <!-- 내 미납 정산 목록 (알림 배지용) -->
+    <select id="selectMyPendingDetails" resultType="com.kkiri.model.vo.SettlementDetailVO">
+        SELECT
+            d.DETAIL_ID       AS detailId,
+            d.SETTLEMENT_ID   AS settlementId,
+            d.USER_ID         AS userId,
+            d.AMOUNT_DUE      AS amountDue,
+            d.PENALTY_AMOUNT  AS penaltyAmount,
+            d.STATUS          AS status,
+            s.TITLE           AS settlementTitle,
+            s.GROUP_ID        AS groupId
+        FROM SETTLEMENT_DETAILS d
+        JOIN SETTLEMENTS s ON d.SETTLEMENT_ID = s.SETTLEMENT_ID
+        WHERE d.USER_ID   = #{userId}
+          AND d.STATUS    = 'WAITING'
+          AND s.STATUS    = 'PROCEEDING'
+        ORDER BY s.CREATED_AT DESC
+    </select>
+
+    <!-- 상세 납부 완료 처리 -->
+    <update id="updateDetailPaid">
+        UPDATE SETTLEMENT_DETAILS
+        SET STATUS    = 'PAID',
+            PAID_AT   = CURRENT_TIMESTAMP,
+            UPDATED_AT = CURRENT_TIMESTAMP
+        WHERE DETAIL_ID = #{detailId}
+    </update>
+
+    <!-- 모든 멤버가 납부했으면 정산 COMPLETED 처리 -->
+    <update id="updateSettlementIfCompleted">
+        UPDATE SETTLEMENTS
+        SET STATUS = 'COMPLETED'
+        WHERE SETTLEMENT_ID = #{settlementId}
+          AND NOT EXISTS (
+              SELECT 1 FROM SETTLEMENT_DETAILS
+              WHERE SETTLEMENT_ID = #{settlementId}
+                AND STATUS = 'WAITING'
+          )
+    </update>
+
+    <!-- 정산 삭제 -->
+    <delete id="deleteDetailsBySettlementId">
+        DELETE FROM SETTLEMENT_DETAILS WHERE SETTLEMENT_ID = #{settlementId}
+    </delete>
+
+    <delete id="deleteSettlement">
+        DELETE FROM SETTLEMENTS
+        WHERE SETTLEMENT_ID = #{settlementId}
+          AND GROUP_ID      = #{groupId}
+    </delete>
+
+</mapper>

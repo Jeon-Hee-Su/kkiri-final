@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kkiri.mapper.ReceiptMapper">
+
+    <!-- 1. 메인 지출 정보 저장 -->
+    <insert id="insertExpense" parameterType="com.kkiri.model.dto.ExpenseRequest">
+        <selectKey keyProperty="expenseId" resultType="int" order="BEFORE">
+            SELECT EXPENSES_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO EXPENSES (
+            expense_id,
+            group_id,
+            paid_by,
+            amount,
+            merchant_name,
+            category,
+            receipt_image_url
+        ) VALUES (
+            #{expenseId},
+            #{groupId},
+            #{paidBy},
+            #{amount},
+            #{merchantName},
+            #{category},
+            #{fileName, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <!-- 2. 상세 품목들 저장 -->
+    <insert id="insertReceiptItems" parameterType="map">
+        INSERT INTO RECEIPT_ITEMS (item_id, expense_id, item_name, price, quantity, status)
+        SELECT RECEIPT_ITEMS_SEQ.NEXTVAL, A.* FROM (
+            <foreach collection="items" item="item" separator="UNION ALL">
+                SELECT #{expenseId}, #{item.itemName}, #{item.price}, #{item.quantity}, 'INCLUDED' FROM DUAL
+            </foreach>
+        ) A
+    </insert>
+
+    <!-- 3. 특정 그룹의 내역 조회 -->
+    <select id="selectExpensesByGroupId" resultType="com.kkiri.model.dto.ExpenseResponse">
+        SELECT
+            expense_id        AS expenseId,
+            merchant_name     AS merchantName,
+            category,
+            amount,
+            TO_CHAR(created_at, 'YYYY-MM-DD') AS payDate,
+            receipt_image_url AS receiptImageUrl
+        FROM EXPENSES
+        WHERE group_id = #{groupId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 4. 특정 영수증의 품목 상세 조회 -->
+    <select id="selectItemsByExpenseId" resultType="com.kkiri.model.dto.ExpenseResponse$ItemResponse">
+        SELECT
+            item_name   AS itemName,
+            price,
+            quantity
+        FROM RECEIPT_ITEMS
+        WHERE expense_id = #{expenseId}
+          AND status = 'INCLUDED'
+        ORDER BY item_id ASC
+    </select>
+
+    <!-- 5. 특정 transactionId의 거래에 expense_id를 직접 연결 -->
+    <update id="linkExpenseToTransaction">
+        UPDATE TRANSACTIONS
+        SET EXPENSE_ID = #{expenseId}
+        WHERE TRANSACTION_ID = #{transactionId}
+    </update>
+	
+	<!-- 7. 영수증 삭제 (TRANSACTIONS 연결 해제 → RECEIPT_ITEMS 삭제 → EXPENSES 삭제) -->
+    <update id="unlinkExpenseFromTransaction">
+        UPDATE TRANSACTIONS SET EXPENSE_ID = NULL WHERE EXPENSE_ID = #{expenseId}
+    </update>
+ 
+    <delete id="deleteReceiptItems">
+        DELETE FROM RECEIPT_ITEMS WHERE EXPENSE_ID = #{expenseId}
+    </delete>
+ 
+    <delete id="deleteExpense">
+        DELETE FROM EXPENSES WHERE EXPENSE_ID = #{expenseId} AND PAID_BY = #{userId}
+    </delete>
+</mapper>

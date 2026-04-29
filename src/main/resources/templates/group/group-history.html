@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>KKIRI | 거래 내역</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+      <link rel="stylesheet" th:href="@{/css/group/group-history.css}">
+    
+    <script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+    
+
+</head>
+
+<body class="font-display bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen pb-20">
+    <div th:replace="~{fragment/header :: commonHeader}"></div>
+
+    <div class="flex flex-1 relative pt-16 md:pt-20">
+        <div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+        <main id="history-page" 
+      th:data-group-id="${groupId}" class="flex-1 w-full max-w-3xl mx-auto px-4 py-6 md:p-8">
+            <!-- 헤더 영역 -->
+<div class="flex items-center gap-4 mb-8">
+ <button onclick="history.back()"
+                    class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 rounded-full shadow-sm">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+    
+    <h2 class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+        거래 내역
+    </h2>
+</div>
+            <!-- 상단 필터 및 요약 섹션 -->
+            <section class="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 shadow-sm border border-slate-100 dark:border-slate-800 mb-6 transition-all">
+                <div class="flex flex-col gap-6">
+                    <!-- 퀵 필터 버튼 -->
+               <div class="flex gap-2 py-2 w-full">
+    <button id="btn-1m" onclick="changePeriod(1, this)" 
+            class="period-btn flex-1 py-3 rounded-2xl text-[12px] font-bold whitespace-nowrap transition-all active:scale-95">
+        1개월
+    </button>
+    <button onclick="changePeriod(3, this)" 
+            class="period-btn flex-1 py-3 rounded-2xl text-[12px] font-bold whitespace-nowrap transition-all active:scale-95">
+        3개월
+    </button>
+    <button onclick="showDatePicker()" id="custom-date-btn" 
+            class="flex-1 py-3 rounded-2xl text-[12px] font-bold whitespace-nowrap flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-sm">event</span> 직접선택
+    </button>
+</div>
+
+                    <!-- 요약 박스 -->
+                    <div class="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800">
+                        <div class="flex flex-col gap-1 border-r border-slate-200 dark:border-slate-700">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">총 입금</span>
+                            <span id="total-income" class="text-base font-black text-blue-600 tabular-nums">+1,250,000원</span>
+                        </div>
+                        <div class="flex flex-col gap-1 pl-2">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">총 출금</span>
+                            <span id="total-expense" class="text-base font-black text-rose-500 tabular-nums">-850,000원</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 거래 리스트 섹션 -->
+            <section class="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+                <div class="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
+                    <span id="current-range-text" class="text-xs font-bold text-slate-400 italic">2026.03.01 ~ 2026.03.30</span>
+                    <span class="text-[10px] font-black bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl text-slate-500">최신순</span>
+                </div>
+
+                <!-- 리스트 출력 영역 -->
+                <div id="history-list" class="flex flex-col divide-y divide-slate-50 dark:divide-slate-800/50">
+                    <!-- JS에서 동적으로 렌더링 -->
+                </div>
+
+                <!-- 데이터 없음 -->
+                <div id="no-data" class="hidden py-24 text-center">
+                    <span class="material-symbols-outlined text-6xl text-slate-200 dark:text-slate-800">history_toggle_off</span>
+                    <p class="mt-4 text-sm text-slate-400 font-bold">해당 기간의 거래 내역이 없습니다.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- [날짜 선택 모달] -->
+    <div id="datePickerModal" class="hidden fixed inset-0 z-[150] flex items-end md:items-center justify-center p-0 md:p-4">
+        <!-- 배경 -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeDatePicker()"></div>
+        
+        <!-- 모달 컨텐츠 -->
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[2.5rem] md:rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-xl font-black italic text-slate-900 dark:text-white">기간 설정</h3>
+                    <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">조회할 시작일과 종료일을 선택하세요</p>
+                </div>
+                <button onclick="closeDatePicker()" class="w-10 h-10 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:rotate-90 transition-transform">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="space-y-6">
+                <div class="relative group">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">조회 시작일</label>
+                    <div class="relative h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center px-5 border-2 border-transparent focus-within:border-primary transition-all">
+                        <span class="material-symbols-outlined text-slate-400 mr-3">calendar_today</span>
+                        <input type="date" id="startDate" class="bg-transparent border-none w-full p-0 font-bold text-slate-700 dark:text-slate-200 focus:ring-0" />
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">조회 종료일</label>
+                    <div class="relative h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center px-5 border-2 border-transparent focus-within:border-primary transition-all">
+                        <span class="material-symbols-outlined text-slate-400 mr-3">event_available</span>
+                        <input type="date" id="endDate" class="bg-transparent border-none w-full p-0 font-bold text-slate-700 dark:text-slate-200 focus:ring-0" />
+                    </div>
+                </div>
+
+                <button type="button" onclick="applyCustomDate()" class="w-full bg-primary text-white py-5 rounded-[1.5rem] font-black text-base shadow-xl shadow-primary/30 active:scale-[0.98] transition-all mt-4">
+                    내역 조회하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+ 
+    <div th:replace="~{fragment/footer :: mainFooter}"></div>
+
+    <!-- 영수증 상세 모달 -->
+    <div id="receiptDetailModal" class="hidden fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-t-3xl md:rounded-3xl p-6 shadow-2xl">
+            <div class="w-10 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-5 md:hidden"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-500">receipt_long</span>
+                    <h3 class="font-black text-base text-slate-800 dark:text-slate-100">영수증 상세</h3>
+                </div>
+                <button onclick="closeReceiptDetail()"
+                    class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+            <div id="receipt-detail-items" class="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700"></div>
+            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <span class="font-bold text-sm text-slate-500">합계</span>
+                <span id="receipt-detail-total" class="font-black text-base text-emerald-600"></span>
+            </div>
+            <!-- 영수증 삭제 버튼 -->
+            <button id="receipt-delete-btn" onclick="deleteReceipt()"
+                class="mt-4 w-full py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-500 font-bold text-sm flex items-center justify-center gap-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 active:scale-[0.98] transition-all">
+                <span class="material-symbols-outlined text-base">delete</span>
+                영수증 삭제
+            </button>
+        </div>
+    </div>
+
+        <script th:src="@{/js/group/group-history.js}"></script>
+</body>
+</html>

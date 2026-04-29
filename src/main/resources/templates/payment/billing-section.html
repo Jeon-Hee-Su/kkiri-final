@@ -1,0 +1,49 @@
+<!-- =====================================================================
+     paymentmethod.html 에 추가할 자동이체 카드 등록 섹션
+     계좌 목록 섹션 아래에 붙여넣기
+     ===================================================================== -->
+
+<!-- PortOne SDK -->
+<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+<script th:src="@{/js/billing/billing-key.js}"></script>
+
+<!-- 자동이체 카드 등록 섹션 -->
+<section class="mt-6">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-6 shadow-sm">
+
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xl">autorenew</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">자동이체 (회비 자동납부)</h3>
+                    <p id="billing-status-text" class="text-[11px] text-slate-400 mt-0.5">로딩 중...</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+            카드를 등록하면 그룹 납부일에 회비가 자동으로 이체됩니다.<br>
+            납부일은 <strong>그룹 관리 → 회비 규칙</strong>에서 설정할 수 있습니다.
+        </p>
+
+        <div class="flex gap-3">
+            <!-- 등록 버튼 -->
+            <button id="billing-register-btn"
+                    onclick="registerBillingKey()"
+                    class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+                <span class="material-symbols-outlined text-base">add_card</span>
+                카드 등록하기
+            </button>
+
+            <!-- 해제 버튼 (등록된 경우에만 표시) -->
+            <button id="billing-cancel-btn"
+                    onclick="cancelBillingKey()"
+                    class="hidden flex-1 bg-slate-100 dark:bg-slate-800 text-slate-500 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+                <span class="material-symbols-outlined text-base">cancel</span>
+                자동이체 해제
+            </button>
+        </div>
+    </div>
+</section>

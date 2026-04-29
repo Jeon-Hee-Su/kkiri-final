@@ -1,0 +1,102 @@
+/* [수정] 누락되었던 외부 리소스 import 다시 추가 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+/* 1. 변수 정의 및 기본 설정 */
+:root {
+    --primary: #135bec;
+    --primary-soft: rgba(19, 91, 236, 0.1);
+    --background-light: #f6f6f8;
+    --background-dark: #101622;
+    --slate-200: #e2e8f0;
+    --slate-800: #1e293b;
+    --slate-400: #94a3b8;
+}
+
+/* 2. 전역 바디 스타일 */
+body {
+    background-color: var(--background-light);
+    color: #0f172a;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    transition: background-color 0.3s ease;
+	user-select: none;
+}
+
+/* 다크모드 대응 */
+.dark body, body.dark {
+    background-color: var(--background-dark);
+    color: #f1f5f9;
+}
+
+/* 3. 공통 컴포넌트 클래스 */
+
+/* [수정] 카드 패널 스타일: index와 account 공통 사용 */
+.card-panel {
+    background-color: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.dark .card-panel {
+    background-color: #0f172a;
+    border-color: var(--slate-800);
+}
+
+/* [추가] 피처 카드 전용 (hover 효과 포함) */
+.feature-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+/* 메인 액션 버튼 */
+.btn-primary {
+    display: inline-flex; /* flex에서 inline-flex로 수정하여 버튼 크기 최적화 */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.5rem;
+    background-color: var(--primary);
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(19, 91, 236, 0.2);
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+    box-shadow: 0 10px 15px -3px rgba(19, 91, 236, 0.3);
+}
+
+.btn-primary:active {
+    transform: scale(0.96);
+}
+
+/* 정보 레이블 및 값 (회원정보 페이지용) */
+.info-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block; /* 줄바꿈 보장 */
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    color: #0f172a;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.dark .info-value {
+    color: #e2e8f0;
+}

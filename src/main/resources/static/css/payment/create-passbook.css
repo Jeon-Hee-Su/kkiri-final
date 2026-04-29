@@ -1,0 +1,80 @@
+
+body { 
+    font-family: 'Noto Sans KR', sans-serif; 
+    /* 100dvh를 사용하여 주소창 제외 실제 높이에 맞춤 */
+    min-height: 100dvh; 
+    /* 하단 여백을 줄여 스크롤 최소화 (120px -> 40px 권장) */
+    padding-bottom: 40px; 
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+	user-select: none;
+}
+
+/* 2. 아이폰 SE 전용 미디어 쿼리 (세로 700px 이하 기기) */
+@media (max-height: 700px) {
+    /* 상단 여백 압축 */
+    main { padding-top: 2rem !important; padding-bottom: 1rem !important; }
+    /* 타이틀 크기 축소 */
+    h2 { font-size: 1.4rem !important; margin-bottom: 0.5rem !important; }
+    /* 카드 내부 여백 및 간격 축소 */
+    .p-7, .p-14 { padding: 1.25rem !important; }
+    .mb-10, .mb-12 { margin-bottom: 1.5rem !important; }
+    /* 보안 도트 및 키패드 사이즈 최적화 */
+    .pw-dot { width: 1.2rem; height: 1.2rem; }
+    .key-btn { height: 3.5rem !important; font-size: 1.4rem !important; }
+    .mb-14, .mb-16 { margin-bottom: 1.5rem !important; }
+}
+
+/* 3. 애니메이션 및 인터랙션 (원본 유지) */
+* { -webkit-tap-highlight-color: transparent; }
+.modal-animate {
+    animation: modalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* 4. 보안 도트 스타일 (사용자 색상 반영) */
+.pw-dot { 
+    width: 1.5rem; 
+    height: 1.5rem;
+    border-radius: 9999px;
+    background-color: #E2E8F0; 
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    border: none;
+}
+.pw-dot.active { 
+    background-color: #135bec !important; 
+    transform: scale(1.2); 
+    box-shadow: 0 4px 12px rgba(19, 91, 236, 0.3);
+}
+
+/* 5. 키패드 디자인 (반응형 고정) */
+.key-btn {
+    height: 4.5rem; 
+    border-radius: 1.5rem; 
+    background-color: #F8FAFC;
+    font-size: 1.8rem; 
+    font-weight: 800; 
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    transition: all 0.1s;
+    cursor: pointer; 
+    border: none; 
+    width: 100%;
+}
+.key-btn:active { background-color: #F1F5F9; transform: scale(0.96); }
+
+/* 6. 공통 요소 (원본 유지) */
+.custom-radio:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+    background-color: #135bec; /* 사용자 색상으로 통일 */
+    border-color: #135bec;
+}
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+    font-variation-settings: 'wght' 200, 'opsz' 24;
+}

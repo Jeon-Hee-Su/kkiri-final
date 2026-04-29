@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+    <script th:src="@{/js/auth/account.js}"></script>
+    <script th:src="@{/js/fragment/side_head.js}"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script th:src="@{/js/tailwind.js}"></script>
+
+    <link rel="stylesheet" th:href="@{/css/auth/account.css}">
+    <link rel="stylesheet" th:href="@{/css/material.css}">
+    <title>회원정보</title>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+
+    <div th:replace="~{fragment/header :: commonHeader}"></div>
+
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden pt-14">
+        <div class="flex flex-1 overflow-hidden">
+            <div th:replace="~{fragment/sidebar :: commonSidebar}"></div>
+
+            <main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6 lg:p-10">
+                
+				
+				  <button onclick="history.back()" 
+				        class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 rounded-full shadow-sm text-slate-500 hover:text-primary transition-all active:scale-95 flex-shrink-0">
+				    <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+				</button>
+				
+				<div class="max-w-4xl mx-auto space-y-8">
+
+                    <div class="card-panel">
+                        <div class="h-32 bg-primary relative" style="background-image: linear-gradient(135deg, #135bec 0%, #0a2e7a 100%);"></div>
+                        <div class="px-8 pb-8 flex flex-col md:flex-row items-end gap-6 -mt-12 relative">
+                            <div class="relative group">
+                                <div class="size-32 rounded-2xl border-4 border-white dark:border-slate-900 bg-white dark:bg-slate-800 overflow-hidden shadow-lg">
+                                    <img alt="Profile"
+										 id="profileimg"
+										 class="w-full h-full object-cover"
+										 style="min-width: 100%; min-height: 100%; display: block !important;"
+										 src="/img/default_profile.jpg" />
+                                </div>
+                            </div>
+                            <div class="flex-1 pb-2">
+                                <h1 id="topname" name="userNick" class="text-2xl font-bold text-slate-900 dark:text-white">이름</h1>
+                                <p id="toprole" class="text-slate-500 dark:text-slate-400">role</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="md:col-span-3 space-y-8">
+                            <section class="card-panel p-8">
+                                <div class="flex items-center justify-between mb-6 gap-2">
+                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 shrink-0">
+                                        <span class="material-symbols-outlined text-primary">badge</span>
+                                        개인 정보
+                                    </h3>
+                                </div>
+								
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
+									<div class="space-y-1">
+										<p class="info-label">고유번호</p>
+										<p id="info-userid" class="info-value view-mode">고유번호</p>
+										<input type="text" name="userId" class="edit-mode hidden w-full rounded-lg border-slate-200 focus:ring-primary" value="userId" readonly>
+									</div>
+                                    <div class="space-y-1">
+                                        <p class="info-label">이름</p>
+                                        <p id="info-name" class="info-value view-mode">이름</p>
+                                        <input type="text" name="name" class="edit-mode hidden w-full rounded-lg border-slate-200 focus:ring-primary" value="userName" readonly>
+                                    </div>
+									<div class="space-y-1">
+										<p class="info-label">닉네임</p>
+										<p id="info-nick" class="info-value view-mode">닉네임</p>
+										<input type="text" name="nickname" class="edit-mode hidden w-full rounded-lg border-slate-200 focus:ring-primary" value="">
+									</div>
+                                    <div class="space-y-1">
+                                        <p class="info-label">이메일</p>
+                                        <p id="info-email" class="info-value view-mode">sample@example.com</p>
+                                        <input type="email" name="email" class="edit-mode hidden w-full rounded-lg border-slate-200 focus:ring-primary" value="alex.johnson@example.com" readonly>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <p class="info-label">연락처</p>
+                                        <p id="info-phone" class="info-value view-mode">010-1234-5678</p>
+                                        <input type="text" name="phone" class="edit-mode hidden w-full rounded-lg border-slate-200 dark:bg-slate-800 focus:ring-primary" value="+82 10-5123-4567">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="info-label">생년월일</p>
+                                        <p id="info-birth" class="info-value view-mode">1999-99-99</p>
+                                        <input type="text" maxlength="6" name="birth" class="edit-mode hidden w-full rounded-lg border-slate-200 dark:bg-slate-800 focus:ring-primary">
+                                    </div>
+                                </div>
+								<div class="flex items-center justify-end gap-2 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex-nowrap -mr-5">
+								 	<button id="edit-toggle-btn" class="btn-primary min-w-[130px] sm:w-[130px] h-[45px] sm:h-[50px] text-sm flex items-center justify-center gap-1 shrink-0" onclick="toggleProfileEdit()">
+								   		<span class="material-symbols-outlined text-[18px]" id="editIcon">edit</span>
+								  		<span id="editText">프로필 수정</span>
+									</button>
+									<button id="change-pw-btn" class="btn-primary min-w-[130px] sm:w-[130px] h-[45px] sm:h-[50px] text-sm flex items-center justify-center gap-1 shrink-0" onclick="openchangePW()">
+										<span class="material-symbols-outlined text-[18px]" id="editIcon">password</span>
+										<span id="editPW">비밀번호 변경</span>
+									</button>
+								</div>
+                            </section>
+                        </div>
+
+                           
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+	<div th:replace="~{auth/changePW-modal :: passwordModal}"></div>
+	<script th:src="@{/js/auth/changePW.js}"></script>
+	<script th:src="@{/js/auth/auth-utils.js}"></script>
+    <script th:src="@{/js/auth/auth-common.js}"></script>
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+    <div th:replace="~{fragment/footer :: mainFooter}"></div>
+
+</body>
+</html>

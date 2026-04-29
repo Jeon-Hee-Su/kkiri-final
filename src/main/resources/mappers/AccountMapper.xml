@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kkiri.mapper.AccountMapper">
+
+	<!-- 결제 비밀번호 조회 -->
+	<select id="findPaymentPasswordByGroupId" parameterType="int"
+		resultType="String">
+		SELECT ga.PAYMENT_PASSWORD
+		FROM GROUP_ACCOUNT ga
+		JOIN GROUPS g ON ga.GROUP_ID = g.GROUP_ID
+		WHERE ga.GROUP_ID = #{groupId}
+		AND g.STATUS = 'ACTIVE'
+	</select>
+
+	<select id="findPaymentPasswordByUserId" parameterType="int"
+		resultType="String">
+		SELECT PAYMENT_PASSWORD
+		FROM USER_ACCOUNTS
+		WHERE USER_ID = #{userId}
+		AND IS_PRIMARY = 'Y'
+	</select>
+
+</mapper>
